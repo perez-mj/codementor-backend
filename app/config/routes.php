@@ -46,9 +46,11 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 //API endpoints
 $router->post('login', 'ApiController::login');
 $router->post('logout', 'ApiController::logout');
-$router->post('create', 'ApiController::create');
+$router->post('register', 'ApiController::register');
 $router->put('update/{id}', 'ApiController::update');
 $router->delete('delete/{id}', 'ApiController::delete');
 $router->get('list', 'ApiController::list');
 $router->get('profile', 'ApiController::profile');
 $router->post('refresh', 'ApiController::refresh');
+
+$router->get('verify-email', 'ApiController::verify_email');
