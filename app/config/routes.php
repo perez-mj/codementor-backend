@@ -52,5 +52,16 @@ $router->delete('delete/{id}', 'ApiController::delete');
 $router->get('list', 'ApiController::list');
 $router->get('profile', 'ApiController::profile');
 $router->post('refresh', 'ApiController::refresh');
-
 $router->get('verify-email', 'ApiController::verify_email');
+
+$router->get('/languages', 'ApiLanguageController::list');
+$router->get('/languages/{slug}', 'ApiLanguageController::get');
+$router->get('/languages/{lang_id}/lessons', 'ApiLessonsController::listByLanguage');
+$router->get('/languages/{lang_id}/lessons/{topic}', 'ApiLessonsController::getLesson');
+$router->post('/lessons', 'ApiLessonsController::save'); // admin only
+
+//Migration
+$router->get('create-migration/{migration_class}', 'MigrationController::create_migration');
+$router->get('migrate', 'MigrationController::migrate');
+$router->get('rollback', 'MigrationController::rollback');
+

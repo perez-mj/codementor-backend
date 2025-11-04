@@ -156,6 +156,11 @@ class DBForge {
             if (isset($details['unique']) && $details['unique']) {
                 $col .= " UNIQUE";
             }
+
+            //mj added this
+            if (isset($details['default'])) {
+                $col .= " DEFAULT" . " " . $details['default'];
+            }
             $columns[] = $col;
         }
 

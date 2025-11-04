@@ -46,17 +46,6 @@ class ApiController extends Controller
             ->get_all();
         $this->api->respond($stmt);
     }
-
-    public function oldregister()
-    {
-        $input = $this->api->body();
-        $this->db->raw(
-            "INSERT INTO users (username, email, password_hash, role, joined_at)
-             VALUES (?, ?, ?, ?, NOW())",
-            [$input['username'], $input['email'], password_hash($input['password'], PASSWORD_BCRYPT), $input['role']]
-        );
-        $this->api->respond(['message' => 'User created']); // output: {"message":"User created"}
-    }
     
     public function register()
     {
