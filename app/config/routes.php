@@ -54,11 +54,17 @@ $router->get('profile', 'ApiController::profile');
 $router->post('refresh', 'ApiController::refresh');
 $router->get('verify-email', 'ApiController::verify_email');
 
-$router->get('/languages', 'ApiLanguageController::list');
-$router->get('/languages/{slug}', 'ApiLanguageController::get');
-$router->get('/languages/{lang_id}/lessons', 'ApiLessonsController::listByLanguage');
-$router->get('/languages/{lang_id}/lessons/{topic}', 'ApiLessonsController::getLesson');
-$router->post('/lessons', 'ApiLessonsController::save'); // admin only
+$router->get('languages', 'ApiLanguageController::list');
+$router->get('languages/{slug}', 'ApiLanguageController::get');
+$router->get('languages/{lang_id}/lessons', 'ApiLessonsController::listByLanguage');
+$router->get('languages/{lang_id}/lessons/{topic}', 'ApiLessonsController::getLesson');
+$router->post('lessons', 'ApiLessonsController::save'); // admin only
+
+// Admin Stats endpoints
+$router->get('admin/stats', 'AdminStatsController::stats');
+$router->get('admin/user-growth', 'AdminStatsController::userGrowth');
+$router->get('admin/lesson-engagement', 'AdminStatsController::lessonEngagement');
+$router->get('admin/recent-activity', 'AdminStatsController::recentActivity');
 
 //Migration
 $router->get('create-migration/{migration_class}', 'MigrationController::create_migration');
