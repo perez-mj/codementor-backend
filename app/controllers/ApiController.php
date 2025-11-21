@@ -46,7 +46,7 @@ class ApiController extends Controller
             ->get_all();
         $this->api->respond($stmt);
     }
-    
+
     public function register()
     {
         $this->api->require_method('POST');
@@ -66,7 +66,7 @@ class ApiController extends Controller
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->api->respond_error('Invalid email format', 422); 
+            $this->api->respond_error('Invalid email format', 422);
         }
 
         if (strlen($password) < 6) {
@@ -147,12 +147,40 @@ class ApiController extends Controller
     {
         $auth = $this->api->require_jwt();
         $this->user_id = $auth['sub'];
-        $stmt = $this->db->raw(
+
+        // 1. Fetch User Data
+        $user_stmt = $this->db->raw(
             "SELECT id, username, email, role, joined_at FROM users WHERE id = ?",
             [$this->user_id]
         );
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        $this->api->respond($user ?: ['message' => 'User not found']);
+        $user = $user_stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            $this->api->respond_error(['message' => 'User not found'], 404);
+            return;
+        }
+
+        // 2. Fetch User Stats (XP, Streaks, etc.) - Assuming a 'user_stats' table
+        $stats_stmt = $this->db->raw(
+            "SELECT xp, current_streak, longest_streak FROM user_stats WHERE user_id = ?",
+            [$this->user_id]
+        );
+        $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC) ?? [];
+
+        // 3. Fetch Recent Activity (e.g., last 3 submissions) - Limit to what the profile needs
+        $recent_stmt = $this->db->raw(
+            "SELECT c.title, s.status, s.submitted_at FROM submissions s 
+         JOIN challenges c ON s.challenge_id = c.id
+         WHERE s.user_id = ? ORDER BY s.submitted_at DESC LIMIT 3",
+            [$this->user_id]
+        );
+        $recent_activity = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 4. Combine and Respond
+        $response_data = array_merge($user, $stats, ['recent_activity' => $recent_activity]);
+
+        // You should ensure this response structure matches the mock data you expect in Vue
+        $this->api->respond($response_data);
     }
 
     public function refresh()

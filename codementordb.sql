@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 07, 2025 at 01:00 PM
--- Server version: 8.0.43-0ubuntu0.24.04.2
+-- Generation Time: Nov 21, 2025 at 12:40 PM
+-- Server version: 8.0.44-0ubuntu0.24.04.1
 -- PHP Version: 8.3.6
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -24,18 +24,36 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `attempts`
+-- Table structure for table `achievements`
 --
 
-CREATE TABLE `attempts` (
+CREATE TABLE `achievements` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `challenge_id` int NOT NULL,
-  `code` text COLLATE utf8mb4_general_ci,
-  `language` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `attempt_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `passed` tinyint(1) DEFAULT '0'
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci NOT NULL,
+  `criteria` text COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `categories`
+--
+
+CREATE TABLE `categories` (
+  `id` int NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`id`, `name`, `description`) VALUES
+(1, 'Algorithms', 'Challenges focused on efficient problem-solving logic and data manipulation.'),
+(2, 'Data Structures', 'Challenges focused on implementing and utilizing structures like trees, graphs, and lists.'),
+(3, 'Web Development', 'Challenges focused on building front-end and back-end web components.');
 
 -- --------------------------------------------------------
 
@@ -45,55 +63,38 @@ CREATE TABLE `attempts` (
 
 CREATE TABLE `challenges` (
   `id` int NOT NULL,
-  `title` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `slug` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `slug` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `description` text COLLATE utf8mb4_general_ci NOT NULL,
-  `starter_code` text COLLATE utf8mb4_general_ci,
-  `difficulty` enum('Easy','Medium','Hard') COLLATE utf8mb4_general_ci DEFAULT 'Easy',
-  `created_by` int DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` enum('pending','approved','rejected') COLLATE utf8mb4_general_ci DEFAULT 'pending',
-  `rejection_reason` text COLLATE utf8mb4_general_ci,
-  `approved_by` int DEFAULT NULL,
-  `approved_at` timestamp NULL DEFAULT NULL
+  `difficulty` enum('Easy','Medium','Hard') COLLATE utf8mb4_general_ci NOT NULL,
+  `xp_reward` int NOT NULL,
+  `solved_count` int NOT NULL DEFAULT '0',
+  `category_id` int NOT NULL,
+  `created_by` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `challenges`
 --
 
-INSERT INTO `challenges` (`id`, `title`, `slug`, `description`, `starter_code`, `difficulty`, `created_by`, `created_at`, `status`, `rejection_reason`, `approved_by`, `approved_at`) VALUES
-(1, '69 Lights', '69-lights', '69 Lights', NULL, 'Easy', 1, '2025-10-21 10:52:02', 'approved', NULL, NULL, NULL),
-(4, 'Simple Hello World', 'Simple Hello World', 'Hello World', '', 'Easy', 1, '2025-10-22 05:37:13', 'rejected', 'Masyadong Madali naman', NULL, NULL),
-(6, 'Time Cram', 'Time Cram', 'Time Cram', '', 'Medium', 1, '2025-10-22 06:17:04', 'rejected', 'jadhjahd', NULL, NULL),
-(7, 'Hello PH', 'Hello PH', 'Hello PH', '', 'Easy', 1, '2025-10-22 06:37:49', 'pending', NULL, NULL, NULL);
+INSERT INTO `challenges` (`id`, `title`, `slug`, `description`, `difficulty`, `xp_reward`, `solved_count`, `category_id`, `created_by`) VALUES
+(1, 'Sum of Two Numbers', 'Sum-of-Two-Numbers', 'Write a function that returns the sum of any two integers.', 'Easy', 10, 0, 1, 1),
+(2, 'Implement a Stack', 'Implement-a-Stack', 'Create a Stack class using a dynamically sized array.', 'Medium', 50, 0, 2, 1),
+(3, 'Build a RESTful API', 'Build-a-RESTful-API', 'Design and implement a fully functioning REST API for a blog application.', 'Hard', 150, 0, 3, 1),
+(4, 'Fibonacci Sequence', 'Fibonacci-Sequence', 'Generate the Nth number in the Fibonacci sequence efficiently.', 'Medium', 75, 0, 1, 1);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `challenge_tests`
+-- Table structure for table `challenge_test_cases`
 --
 
-CREATE TABLE `challenge_tests` (
+CREATE TABLE `challenge_test_cases` (
   `id` int NOT NULL,
   `challenge_id` int NOT NULL,
   `input` text COLLATE utf8mb4_general_ci NOT NULL,
   `expected_output` text COLLATE utf8mb4_general_ci NOT NULL,
-  `is_hidden` tinyint(1) DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `comments`
---
-
-CREATE TABLE `comments` (
-  `id` int NOT NULL,
-  `challenge_id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `comment` text COLLATE utf8mb4_general_ci NOT NULL,
-  `posted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `is_example` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -104,9 +105,9 @@ CREATE TABLE `comments` (
 
 CREATE TABLE `languages` (
   `id` int NOT NULL,
-  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `slug` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `description` text COLLATE utf8mb4_general_ci
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `slug` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -123,16 +124,30 @@ INSERT INTO `languages` (`id`, `name`, `slug`, `description`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `leaderboard_scores`
+--
+
+CREATE TABLE `leaderboard_scores` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `score_type` enum('TotalXP','ChallengesSolved') COLLATE utf8mb4_general_ci NOT NULL,
+  `score_value` int NOT NULL DEFAULT '0',
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `lessons`
 --
 
 CREATE TABLE `lessons` (
   `id` int NOT NULL,
   `language_id` int NOT NULL,
-  `title` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
-  `slug` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `content` longtext COLLATE utf8mb4_general_ci NOT NULL,
+  `title` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `slug` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `order_index` int DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -168,10 +183,10 @@ INSERT INTO `lessons` (`id`, `language_id`, `title`, `description`, `slug`, `con
 CREATE TABLE `lesson_sections` (
   `id` int NOT NULL,
   `lesson_id` int DEFAULT NULL,
-  `subtitle` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `content` longtext COLLATE utf8mb4_general_ci,
-  `code_example` text COLLATE utf8mb4_general_ci,
-  `example_id` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `subtitle` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `code_example` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `example_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `order_index` int DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -242,7 +257,7 @@ INSERT INTO `migrations` (`id`, `migration`) VALUES
 CREATE TABLE `refresh_tokens` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `token` text COLLATE utf8mb4_general_ci NOT NULL,
+  `token` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `expires_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -251,22 +266,24 @@ CREATE TABLE `refresh_tokens` (
 --
 
 INSERT INTO `refresh_tokens` (`id`, `user_id`, `token`, `expires_at`) VALUES
-(1, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xRaLA8a8HCosxCFQo+OynQSKtyoGh3QpIIXC25l3dPh8RwwKIQZOdix6LVDo/PJnRSobqOvPOVzKkbDEI5/adnghb/zXRAv888/nSL/5JPyiKcr91pTnnSqRmNxOAPHQCc=', '2025-11-07 02:42:39');
+(2, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xTPSq8mNpw8pMDR3mcKY5CXqasjceZ3P/xeMEzNUup4ohryzhTR7rrNqN3InYKul16s8YtOF+N+kV2YJIHLXgtp3j16INkym2GTIryMsmVOUiCc483pJ16ObWu0PHrofwo=', '2025-11-27 12:05:05');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `solutions`
+-- Table structure for table `submissions`
 --
 
-CREATE TABLE `solutions` (
+CREATE TABLE `submissions` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
   `challenge_id` int NOT NULL,
-  `code` text COLLATE utf8mb4_general_ci NOT NULL,
+  `code_content` mediumtext COLLATE utf8mb4_general_ci NOT NULL,
   `language` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `submitted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `passed_tests` tinyint(1) DEFAULT '0'
+  `status` enum('Passed','Failed') COLLATE utf8mb4_general_ci NOT NULL,
+  `execution_time` float DEFAULT NULL,
+  `memory_used` int DEFAULT NULL,
+  `submitted_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -277,15 +294,15 @@ CREATE TABLE `solutions` (
 
 CREATE TABLE `users` (
   `id` int NOT NULL,
-  `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `password_hash` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `role` enum('user','moderator','admin') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `password_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `role` enum('user','moderator','admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `joined_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `rank` int DEFAULT '0',
   `total_points` int DEFAULT '0',
   `email_verified` tinyint(1) DEFAULT '0',
-  `verification_token` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `verification_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `token_expires_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -296,17 +313,76 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`, `joined_at`, `rank`, `total_points`, `email_verified`, `verification_token`, `token_expires_at`) VALUES
 (1, 'sadistcoder', 'sadistcoder@cm.com', '$2y$10$18V/3LL9ONBatTqjD/XqV.Tyrm5cw5gYzXI/k4GWwLfqr4Mpu1fG6', 'admin', '2025-10-21 10:50:33', 1, 0, 0, NULL, NULL);
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_achievements`
+--
+
+CREATE TABLE `user_achievements` (
+  `user_id` int NOT NULL,
+  `achievement_id` int NOT NULL,
+  `awarded_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_challenge_status`
+--
+
+CREATE TABLE `user_challenge_status` (
+  `user_id` int NOT NULL,
+  `challenge_id` int NOT NULL,
+  `is_solved` tinyint(1) NOT NULL DEFAULT '0',
+  `solved_at` timestamp NULL DEFAULT NULL,
+  `last_submitted_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_settings`
+--
+
+CREATE TABLE `user_settings` (
+  `user_id` int NOT NULL,
+  `setting_key` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `setting_value` text COLLATE utf8mb4_general_ci
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_stats`
+--
+
+CREATE TABLE `user_stats` (
+  `user_id` int NOT NULL,
+  `xp` int DEFAULT '0',
+  `current_streak` int DEFAULT '0',
+  `longest_streak` int DEFAULT '0',
+  `total_submissions` int DEFAULT '0',
+  `challenges_solved` int DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `attempts`
+-- Indexes for table `achievements`
 --
-ALTER TABLE `attempts`
+ALTER TABLE `achievements`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `challenge_id` (`challenge_id`);
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Indexes for table `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
 
 --
 -- Indexes for table `challenges`
@@ -314,23 +390,15 @@ ALTER TABLE `attempts`
 ALTER TABLE `challenges`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `slug` (`slug`),
-  ADD KEY `created_by` (`created_by`),
-  ADD KEY `fk_approved_by` (`approved_by`);
+  ADD KEY `category_id` (`category_id`),
+  ADD KEY `created_by` (`created_by`);
 
 --
--- Indexes for table `challenge_tests`
+-- Indexes for table `challenge_test_cases`
 --
-ALTER TABLE `challenge_tests`
+ALTER TABLE `challenge_test_cases`
   ADD PRIMARY KEY (`id`),
   ADD KEY `challenge_id` (`challenge_id`);
-
---
--- Indexes for table `comments`
---
-ALTER TABLE `comments`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `challenge_id` (`challenge_id`),
-  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `languages`
@@ -340,6 +408,13 @@ ALTER TABLE `languages`
   ADD UNIQUE KEY `name` (`name`),
   ADD UNIQUE KEY `slug` (`slug`),
   ADD UNIQUE KEY `slug_2` (`slug`);
+
+--
+-- Indexes for table `leaderboard_scores`
+--
+ALTER TABLE `leaderboard_scores`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `lessons`
@@ -370,9 +445,9 @@ ALTER TABLE `refresh_tokens`
   ADD KEY `user_id` (`user_id`);
 
 --
--- Indexes for table `solutions`
+-- Indexes for table `submissions`
 --
-ALTER TABLE `solutions`
+ALTER TABLE `submissions`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `challenge_id` (`challenge_id`);
@@ -386,31 +461,57 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indexes for table `user_achievements`
+--
+ALTER TABLE `user_achievements`
+  ADD PRIMARY KEY (`user_id`,`achievement_id`),
+  ADD KEY `achievement_id` (`achievement_id`);
+
+--
+-- Indexes for table `user_challenge_status`
+--
+ALTER TABLE `user_challenge_status`
+  ADD PRIMARY KEY (`user_id`,`challenge_id`),
+  ADD KEY `challenge_id` (`challenge_id`);
+
+--
+-- Indexes for table `user_settings`
+--
+ALTER TABLE `user_settings`
+  ADD PRIMARY KEY (`user_id`,`setting_key`);
+
+--
+-- Indexes for table `user_stats`
+--
+ALTER TABLE `user_stats`
+  ADD PRIMARY KEY (`user_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT for table `attempts`
+-- AUTO_INCREMENT for table `achievements`
 --
-ALTER TABLE `attempts`
+ALTER TABLE `achievements`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `challenges`
 --
 ALTER TABLE `challenges`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `challenge_tests`
+-- AUTO_INCREMENT for table `challenge_test_cases`
 --
-ALTER TABLE `challenge_tests`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `comments`
---
-ALTER TABLE `comments`
+ALTER TABLE `challenge_test_cases`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -418,6 +519,12 @@ ALTER TABLE `comments`
 --
 ALTER TABLE `languages`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `leaderboard_scores`
+--
+ALTER TABLE `leaderboard_scores`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `lessons`
@@ -441,12 +548,12 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT for table `solutions`
+-- AUTO_INCREMENT for table `submissions`
 --
-ALTER TABLE `solutions`
+ALTER TABLE `submissions`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -460,31 +567,23 @@ ALTER TABLE `users`
 --
 
 --
--- Constraints for table `attempts`
---
-ALTER TABLE `attempts`
-  ADD CONSTRAINT `attempts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `attempts_ibfk_2` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`);
-
---
 -- Constraints for table `challenges`
 --
 ALTER TABLE `challenges`
-  ADD CONSTRAINT `challenges_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `fk_approved_by` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `challenges_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`),
+  ADD CONSTRAINT `challenges_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);
 
 --
--- Constraints for table `challenge_tests`
+-- Constraints for table `challenge_test_cases`
 --
-ALTER TABLE `challenge_tests`
-  ADD CONSTRAINT `challenge_tests_ibfk_1` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`) ON DELETE CASCADE;
+ALTER TABLE `challenge_test_cases`
+  ADD CONSTRAINT `challenge_test_cases_ibfk_1` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`);
 
 --
--- Constraints for table `comments`
+-- Constraints for table `leaderboard_scores`
 --
-ALTER TABLE `comments`
-  ADD CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`),
-  ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `leaderboard_scores`
+  ADD CONSTRAINT `leaderboard_scores_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
 -- Constraints for table `lessons`
@@ -505,11 +604,37 @@ ALTER TABLE `refresh_tokens`
   ADD CONSTRAINT `refresh_tokens_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `solutions`
+-- Constraints for table `submissions`
 --
-ALTER TABLE `solutions`
-  ADD CONSTRAINT `solutions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `solutions_ibfk_2` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`);
+ALTER TABLE `submissions`
+  ADD CONSTRAINT `submissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `submissions_ibfk_2` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`);
+
+--
+-- Constraints for table `user_achievements`
+--
+ALTER TABLE `user_achievements`
+  ADD CONSTRAINT `user_achievements_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `user_achievements_ibfk_2` FOREIGN KEY (`achievement_id`) REFERENCES `achievements` (`id`);
+
+--
+-- Constraints for table `user_challenge_status`
+--
+ALTER TABLE `user_challenge_status`
+  ADD CONSTRAINT `user_challenge_status_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `user_challenge_status_ibfk_2` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`);
+
+--
+-- Constraints for table `user_settings`
+--
+ALTER TABLE `user_settings`
+  ADD CONSTRAINT `user_settings_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `user_stats`
+--
+ALTER TABLE `user_stats`
+  ADD CONSTRAINT `user_stats_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

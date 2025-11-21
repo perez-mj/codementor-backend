@@ -54,6 +54,7 @@ $router->get('profile', 'ApiController::profile');
 $router->post('refresh', 'ApiController::refresh');
 $router->get('verify-email', 'ApiController::verify_email');
 
+// Learn
 $router->get('languages', 'ApiLanguageController::list');
 $router->get('languages/{slug}', 'ApiLanguageController::get');
 $router->get('languages/{lang_id}/lessons', 'ApiLessonsController::listByLanguage');
@@ -70,4 +71,37 @@ $router->get('admin/recent-activity', 'AdminStatsController::recentActivity');
 $router->get('create-migration/{migration_class}', 'MigrationController::create_migration');
 $router->get('migrate', 'MigrationController::migrate');
 $router->get('rollback', 'MigrationController::rollback');
+
+// User Stats endpoints
+$router->get('user_stats', 'UserStatsController::get_stats');
+$router->put('user_stats', 'UserStatsController::update_stats');
+
+// Categories endpoints
+$router->get('categories', 'CategoriesController::list');
+$router->get('categories/{id}', 'CategoriesController::get');
+$router->post('categories', 'CategoriesController::create');
+$router->put('categories/{id}', 'CategoriesController::update');
+$router->delete('categories/{id}', 'CategoriesController::delete');
+
+// Challenges endpoints
+$router->get('challenges', 'ChallengesController::list');
+$router->get('challenges/{id|slug}', 'ChallengesController::get');
+$router->post('challenges', 'ChallengesController::create');
+$router->put('challenges/{id}', 'ChallengesController::update');
+$router->delete('challenges/{id}', 'ChallengesController::delete');
+
+// Submissions endpoints
+$router->get('submissions', 'SubmissionsController::list');
+$router->get('submissions/{id}', 'SubmissionsController::get');
+
+// Note: In a real system, submission creation would likely be handled by a separate service
+$router->post('submissions', 'SubmissionsController::create');
+
+// Achievements endpoints
+$router->get('achievements', 'AchievementsController::list');
+$router->get('achievements/{id}', 'AchievementsController::get');
+
+// Settings endpoints
+$router->get('settings', 'UserSettingsController::get_all');
+$router->put('settings', 'UserSettingsController::update');
 
