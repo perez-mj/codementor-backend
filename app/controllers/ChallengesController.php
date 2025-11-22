@@ -20,17 +20,41 @@ class ChallengesController extends Controller
                 c.xp_reward,
                 c.category_id,
                 c.solved_count,
-                ucs.is_solved AS solved
+                ucs.is_solved AS solved,
+                cat.name AS category_name
             FROM challenges c
             LEFT JOIN user_challenge_status ucs
                 ON ucs.challenge_id = c.id
                 AND ucs.user_id = ?
+            LEFT JOIN categories cat ON cat.id = c.category_id
         ";
 
         $stmt = $this->db->raw($sql, [$this->user_id]);
         $challenges = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $this->api->respond($challenges);
+        // Transform to match frontend structure
+        $transformed = array_map(function($challenge) {
+            return [
+                'id' => (int)$challenge['id'],
+                'slug' => $challenge['slug'],
+                'title' => $challenge['title'],
+                'difficulty' => $challenge['difficulty'],
+                'solved' => (bool)$challenge['solved'],
+                'tags' => [$challenge['category_name']], // Using category as tag
+                'xp_reward' => (int)$challenge['xp_reward'],
+                'time_limit' => '1s', // Default value
+                'memory_limit' => '64MB', // Default value
+                'total_submissions' => (int)$challenge['solved_count'],
+                'accepted_submissions' => (int)$challenge['solved_count'],
+                'description' => $challenge['description'] ?? '',
+                'examples' => [],
+                'hints' => [],
+                'testcases' => [],
+                'submissions' => []
+            ];
+        }, $challenges);
+
+        $this->api->respond($transformed);
     }
 
     // ===========================
@@ -40,24 +64,24 @@ class ChallengesController extends Controller
     {
         $this->api->require_method('GET');
 
-        // Determine if the parameter is numeric ID or slug
         $field = is_numeric($value) ? "c.id" : "c.slug";
 
-        // Fetch challenge with category and user status
         $sql = "
-        SELECT 
-            c.*,
-            cat.name AS category_name,
-            ucs.is_solved,
-            ucs.solved_at,
-            ucs.last_submitted_at
-        FROM challenges c
-        JOIN categories cat ON cat.id = c.category_id
-        LEFT JOIN user_challenge_status ucs
-            ON ucs.challenge_id = c.id
-            AND ucs.user_id = ?
-        WHERE $field = ?
-    ";
+            SELECT 
+                c.*,
+                cat.name AS category_name,
+                ucs.is_solved,
+                ucs.solved_at,
+                ucs.last_submitted_at,
+                ucs.attempts,
+                ucs.best_execution_time,
+                ucs.best_memory_used
+            FROM challenges c
+            JOIN categories cat ON cat.id = c.category_id
+            LEFT JOIN user_challenge_status ucs ON ucs.challenge_id = c.id AND ucs.user_id = ?
+            WHERE $field = ? AND c.is_published = 1
+        ";
+        
         $stmt = $this->db->raw($sql, [$this->user_id, $value]);
         $challenge = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -65,24 +89,92 @@ class ChallengesController extends Controller
             $this->api->respond_error('Challenge not found', 404);
         }
 
-        // Fetch last 10 submissions by this user for this challenge
+        // Fetch test cases
+        $testCaseStmt = $this->db->raw("
+            SELECT input, expected_output, is_example 
+            FROM challenge_test_cases 
+            WHERE challenge_id = ? AND is_visible = 1
+            ORDER BY order_index
+        ", [$challenge['id']]);
+        $testCases = $testCaseStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Fetch hints
+        $hintStmt = $this->db->raw("
+            SELECT hint_text 
+            FROM challenge_hints 
+            WHERE challenge_id = ? 
+            ORDER BY order_index
+        ", [$challenge['id']]);
+        $hints = $hintStmt->fetchAll(PDO::FETCH_COLUMN, 0);
+
+        // Fetch tags
+        $tagStmt = $this->db->raw("
+            SELECT tag_name 
+            FROM challenge_tags 
+            WHERE challenge_id = ?
+        ", [$challenge['id']]);
+        $tags = $tagStmt->fetchAll(PDO::FETCH_COLUMN, 0);
+
+        // Fetch submissions
         $subStmt = $this->db->raw("
-        SELECT 
-            id, 
-            language AS lang, 
-            status, 
-            execution_time AS time, 
-            submitted_at AS date
-        FROM submissions
-        WHERE challenge_id = ? AND user_id = ?
-        ORDER BY submitted_at DESC
-        LIMIT 10
-    ", [$challenge['id'], $this->user_id]);
+            SELECT 
+                id, 
+                language AS lang, 
+                status, 
+                execution_time AS time, 
+                memory_used AS memory,
+                submitted_at AS date
+            FROM submissions
+            WHERE challenge_id = ? AND user_id = ?
+            ORDER BY submitted_at DESC
+            LIMIT 10
+        ", [$challenge['id'], $this->user_id]);
+        $submissions = $subStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $challenge['submissions'] = $subStmt->fetchAll(PDO::FETCH_ASSOC);
+        // Separate examples and test cases
+        $examples = [];
+        $testcases = [];
+        foreach ($testCases as $testCase) {
+            if ($testCase['is_example']) {
+                $examples[] = [
+                    'input' => $testCase['input'],
+                    'output' => $testCase['expected_output']
+                ];
+            } else {
+                $testcases[] = [
+                    'input' => $testCase['input'],
+                    'expected_output' => $testCase['expected_output']
+                ];
+            }
+        }
 
-        // Return the full challenge object with submissions
-        $this->api->respond($challenge);
+        // Build response
+        $response = [
+            'id' => (int)$challenge['id'],
+            'slug' => $challenge['slug'],
+            'title' => $challenge['title'],
+            'difficulty' => $challenge['difficulty'],
+            'solved' => (bool)$challenge['is_solved'],
+            'tags' => !empty($tags) ? $tags : [$challenge['category_name']],
+            'xp_reward' => (int)$challenge['xp_reward'],
+            'time_limit' => $challenge['time_limit'],
+            'memory_limit' => $challenge['memory_limit'],
+            'total_submissions' => (int)$challenge['total_submissions'],
+            'accepted_submissions' => (int)$challenge['accepted_submissions'],
+            'description' => $challenge['description'],
+            'examples' => $examples,
+            'hints' => $hints,
+            'testcases' => $testcases,
+            'submissions' => $submissions,
+            'user_stats' => [
+                'attempts' => (int)$challenge['attempts'],
+                'best_execution_time' => $challenge['best_execution_time'],
+                'best_memory_used' => $challenge['best_memory_used'],
+                'solved_at' => $challenge['solved_at']
+            ]
+        ];
+
+        $this->api->respond($response);
     }
 
 
