@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 22, 2025 at 04:50 AM
+-- Generation Time: Nov 22, 2025 at 01:52 PM
 -- Server version: 8.0.44-0ubuntu0.24.04.1
 -- PHP Version: 8.3.6
 
@@ -33,6 +33,20 @@ CREATE TABLE `achievements` (
   `description` text COLLATE utf8mb4_general_ci NOT NULL,
   `criteria` text COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ai_interactions`
+--
+
+CREATE TABLE `ai_interactions` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `user_message` text NOT NULL,
+  `ai_response` text NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -220,6 +234,29 @@ CREATE TABLE `leaderboard_scores` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `learning_paths`
+--
+
+CREATE TABLE `learning_paths` (
+  `id` int NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text,
+  `total_lessons` int DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `learning_paths`
+--
+
+INSERT INTO `learning_paths` (`id`, `name`, `description`, `total_lessons`, `created_at`) VALUES
+(1, 'JavaScript Fundamentals', 'Learn core JavaScript concepts from basics to advanced', 15, '2025-11-22 12:08:56'),
+(2, 'Web Development', 'Full-stack web development with modern technologies', 20, '2025-11-22 12:08:56'),
+(3, 'Data Structures & Algorithms', 'Master computer science fundamentals', 25, '2025-11-22 12:08:56');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `lessons`
 --
 
@@ -348,7 +385,8 @@ CREATE TABLE `refresh_tokens` (
 --
 
 INSERT INTO `refresh_tokens` (`id`, `user_id`, `token`, `expires_at`) VALUES
-(2, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xTPSq8mNpw8pMDR3mcKY5CXqasjceZ3P/xeMEzNUup4ohryzhTR7rrNqN3InYKul16s8YtOF+N+kV2YJIHLXgtp3j16INkym2GTIryMsmVOUiCc483pJ16ObWu0PHrofwo=', '2025-11-27 12:05:05');
+(2, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xTPSq8mNpw8pMDR3mcKY5CXqasjceZ3P/xeMEzNUup4ohryzhTR7rrNqN3InYKul16s8YtOF+N+kV2YJIHLXgtp3j16INkym2GTIryMsmVOUiCc483pJ16ObWu0PHrofwo=', '2025-11-27 12:05:05'),
+(3, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xSgfuX4qzwO1333enqrQVvEa/CfC+5rkqkVILzUtgeAkFGqbBcKnx8XzBMQ/eUn8jJb/rpdLDmdUaGWqQ/u44iT++he2Ae8DrmZdw6/2rJBI60gzOfU13+p2asf1tST6nc=', '2025-11-29 11:47:31');
 
 -- --------------------------------------------------------
 
@@ -377,10 +415,14 @@ CREATE TABLE `submissions` (
 CREATE TABLE `users` (
   `id` int NOT NULL,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `full_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `password_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `role` enum('user','moderator','admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `account_status` enum('active','suspended','banned','pending') COLLATE utf8mb4_general_ci DEFAULT 'pending',
   `joined_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `last_login_at` timestamp NULL DEFAULT NULL,
   `rank` int DEFAULT '0',
   `total_points` int DEFAULT '0',
   `email_verified` tinyint(1) DEFAULT '0',
@@ -392,8 +434,8 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`, `joined_at`, `rank`, `total_points`, `email_verified`, `verification_token`, `token_expires_at`) VALUES
-(1, 'sadistcoder', 'sadistcoder@cm.com', '$2y$10$18V/3LL9ONBatTqjD/XqV.Tyrm5cw5gYzXI/k4GWwLfqr4Mpu1fG6', 'admin', '2025-10-21 10:50:33', 1, 0, 0, NULL, NULL);
+INSERT INTO `users` (`id`, `username`, `full_name`, `email`, `password_hash`, `role`, `account_status`, `joined_at`, `updated_at`, `last_login_at`, `rank`, `total_points`, `email_verified`, `verification_token`, `token_expires_at`) VALUES
+(1, 'sadistcoder', NULL, 'sadistcoder@cm.com', '$2y$10$18V/3LL9ONBatTqjD/XqV.Tyrm5cw5gYzXI/k4GWwLfqr4Mpu1fG6', 'admin', 'pending', '2025-10-21 10:50:33', '2025-11-22 12:08:56', NULL, 1, 0, 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -425,6 +467,37 @@ CREATE TABLE `user_challenge_status` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_learning_paths`
+--
+
+CREATE TABLE `user_learning_paths` (
+  `user_id` int NOT NULL,
+  `path_id` int NOT NULL,
+  `progress_percentage` decimal(5,2) DEFAULT '0.00',
+  `completed_lessons` int DEFAULT '0',
+  `current_lesson_id` int DEFAULT NULL,
+  `enrolled_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_progress`
+--
+
+CREATE TABLE `user_progress` (
+  `user_id` int NOT NULL,
+  `total_lessons_completed` int DEFAULT '0',
+  `current_lesson_id` int DEFAULT NULL,
+  `percent_completion` decimal(5,2) DEFAULT '0.00',
+  `time_spent` int DEFAULT '0' COMMENT 'in seconds',
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -463,6 +536,13 @@ CREATE TABLE `user_stats` (
 ALTER TABLE `achievements`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Indexes for table `ai_interactions`
+--
+ALTER TABLE `ai_interactions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id_created_at` (`user_id`,`created_at`);
 
 --
 -- Indexes for table `categories`
@@ -520,6 +600,12 @@ ALTER TABLE `languages`
 ALTER TABLE `leaderboard_scores`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `learning_paths`
+--
+ALTER TABLE `learning_paths`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `lessons`
@@ -582,6 +668,21 @@ ALTER TABLE `user_challenge_status`
   ADD KEY `solved_at` (`solved_at`);
 
 --
+-- Indexes for table `user_learning_paths`
+--
+ALTER TABLE `user_learning_paths`
+  ADD PRIMARY KEY (`user_id`,`path_id`),
+  ADD KEY `path_id` (`path_id`),
+  ADD KEY `current_lesson_id` (`current_lesson_id`);
+
+--
+-- Indexes for table `user_progress`
+--
+ALTER TABLE `user_progress`
+  ADD PRIMARY KEY (`user_id`),
+  ADD KEY `current_lesson_id` (`current_lesson_id`);
+
+--
 -- Indexes for table `user_settings`
 --
 ALTER TABLE `user_settings`
@@ -601,6 +702,12 @@ ALTER TABLE `user_stats`
 -- AUTO_INCREMENT for table `achievements`
 --
 ALTER TABLE `achievements`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `ai_interactions`
+--
+ALTER TABLE `ai_interactions`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -646,6 +753,12 @@ ALTER TABLE `leaderboard_scores`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `learning_paths`
+--
+ALTER TABLE `learning_paths`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `lessons`
 --
 ALTER TABLE `lessons`
@@ -667,7 +780,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `submissions`
@@ -684,6 +797,12 @@ ALTER TABLE `users`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `ai_interactions`
+--
+ALTER TABLE `ai_interactions`
+  ADD CONSTRAINT `ai_interactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `challenges`
@@ -754,6 +873,21 @@ ALTER TABLE `user_achievements`
 ALTER TABLE `user_challenge_status`
   ADD CONSTRAINT `user_challenge_status_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `user_challenge_status_ibfk_2` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `user_learning_paths`
+--
+ALTER TABLE `user_learning_paths`
+  ADD CONSTRAINT `user_learning_paths_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_learning_paths_ibfk_2` FOREIGN KEY (`path_id`) REFERENCES `learning_paths` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_learning_paths_ibfk_3` FOREIGN KEY (`current_lesson_id`) REFERENCES `lessons` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `user_progress`
+--
+ALTER TABLE `user_progress`
+  ADD CONSTRAINT `user_progress_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_progress_ibfk_2` FOREIGN KEY (`current_lesson_id`) REFERENCES `lessons` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `user_settings`

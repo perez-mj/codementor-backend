@@ -105,7 +105,6 @@ $router->get('achievements/{id}', 'AchievementsController::get');
 $router->get('settings', 'UserSettingsController::get_all');
 $router->put('settings', 'UserSettingsController::update');
 
-
 // Analytics endpoint
 $router->get('analytics/overview', 'AnalyticsController::overview');
 $router->get('analytics/user-growth', 'AnalyticsController::userGrowth');
