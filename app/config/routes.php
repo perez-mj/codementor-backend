@@ -105,3 +105,18 @@ $router->get('achievements/{id}', 'AchievementsController::get');
 $router->get('settings', 'UserSettingsController::get_all');
 $router->put('settings', 'UserSettingsController::update');
 
+// Main Analytics Dashboard
+$router->get('analytics/overview', 'AnalyticsController::overview');
+$router->get('analytics/user-growth', 'AnalyticsController::userGrowth');
+$router->get('analytics/submission-activity', 'AnalyticsController::submissionActivity');
+$router->get('analytics/learning-paths', 'AnalyticsController::learningPaths');
+$router->get('analytics/challenge-difficulty', 'AnalyticsController::challengeDifficulty');
+$router->get('analytics/lesson-performance', 'AnalyticsController::lessonPerformance');
+$router->get('analytics/session-stats', 'AnalyticsController::sessionStats');
+
+// Additional Analytics Endpoints
+$router->get('analytics/lessons', 'AnalyticsController::lessons');
+$router->get('analytics/challenges', 'AnalyticsController::challenges');
+$router->get('analytics/languages', 'AnalyticsController::languages');
+$router->get('analytics/categories', 'AnalyticsController::categories');
+$router->get('analytics/achievements', 'AnalyticsController::achievements');
