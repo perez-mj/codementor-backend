@@ -13,13 +13,25 @@ class AnalyticsController extends Controller
         $totalUsers = $this->db->raw("SELECT COUNT(*) as val FROM users")->fetch(PDO::FETCH_ASSOC)['val'];
 
         // Active Sessions (users active in last 30 minutes)
-        $activeSessions = $this->db->raw("SELECT COUNT(DISTINCT user_id) as val FROM submissions WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)")->fetch(PDO::FETCH_ASSOC)['val'];
+        $activeSessions = $this->db->raw("
+            SELECT COUNT(DISTINCT user_id) as val 
+            FROM submissions 
+            WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+        ")->fetch(PDO::FETCH_ASSOC)['val'];
 
         // Total Submissions
         $totalSubmissions = $this->db->raw("SELECT COUNT(*) as val FROM submissions")->fetch(PDO::FETCH_ASSOC)['val'];
 
         // Submission Success Rate
-        $successRate = $this->db->raw("SELECT ROUND((COUNT(CASE WHEN status = 'Passed' THEN 1 END) * 100.0 / COUNT(*)), 1) as val FROM submissions")->fetch(PDO::FETCH_ASSOC)['val'] ?? 0;
+        $successResult = $this->db->raw("
+            SELECT 
+                CASE 
+                    WHEN COUNT(*) = 0 THEN 0
+                    ELSE ROUND((COUNT(CASE WHEN status = 'Passed' THEN 1 END) * 100.0 / COUNT(*)), 1)
+                END as val 
+            FROM submissions
+        ")->fetch(PDO::FETCH_ASSOC);
+        $successRate = $successResult['val'] ?? 0;
 
         // Total Lessons
         $totalLessons = $this->db->raw("SELECT COUNT(*) as val FROM lessons")->fetch(PDO::FETCH_ASSOC)['val'];
@@ -28,7 +40,11 @@ class AnalyticsController extends Controller
         $totalChallenges = $this->db->raw("SELECT COUNT(*) as val FROM challenges")->fetch(PDO::FETCH_ASSOC)['val'];
 
         // User Growth (last 30 days)
-        $recentUsers = $this->db->raw("SELECT COUNT(*) as val FROM users WHERE joined_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetch(PDO::FETCH_ASSOC)['val'];
+        $recentUsers = $this->db->raw("
+            SELECT COUNT(*) as val 
+            FROM users 
+            WHERE joined_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ")->fetch(PDO::FETCH_ASSOC)['val'];
         $userGrowth = $totalUsers > 0 ? round(($recentUsers / $totalUsers) * 100, 1) : 0;
 
         $this->api->respond([
@@ -110,12 +126,13 @@ class AnalyticsController extends Controller
             SELECT 
                 language,
                 COUNT(*) as count,
-                ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM submissions)), 1) as percentage
+                ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM submissions WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL ?))), 1) as percentage
             FROM submissions
+            WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL ?)
             GROUP BY language
             ORDER BY count DESC
             LIMIT 5
-        ");
+        ", [$interval, $interval]);
 
         $languageUsage = $langStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -139,7 +156,10 @@ class AnalyticsController extends Controller
                 l.name as language_name,
                 COUNT(DISTINCT s.user_id) as active_users,
                 COUNT(s.id) as total_submissions,
-                ROUND((COUNT(CASE WHEN s.status = 'Passed' THEN 1 END) * 100.0 / COUNT(s.id)), 1) as success_rate
+                CASE 
+                    WHEN COUNT(s.id) = 0 THEN 0
+                    ELSE ROUND((COUNT(CASE WHEN s.status = 'Passed' THEN 1 END) * 100.0 / COUNT(s.id)), 1)
+                END as success_rate
             FROM languages l
             LEFT JOIN submissions s ON l.name = s.language
             GROUP BY l.id, l.name
@@ -166,7 +186,10 @@ class AnalyticsController extends Controller
                 cat.name as category_name,
                 COUNT(s.id) as total_attempts,
                 COUNT(CASE WHEN s.status = 'Passed' THEN 1 END) as passed_attempts,
-                ROUND((COUNT(CASE WHEN s.status = 'Passed' THEN 1 END) * 100.0 / NULLIF(COUNT(s.id), 0)), 1) as pass_rate,
+                CASE 
+                    WHEN COUNT(s.id) = 0 THEN 0
+                    ELSE ROUND((COUNT(CASE WHEN s.status = 'Passed' THEN 1 END) * 100.0 / COUNT(s.id)), 1)
+                END as pass_rate,
                 c.solved_count as times_solved
             FROM challenges c
             LEFT JOIN submissions s ON c.id = s.challenge_id
@@ -180,13 +203,22 @@ class AnalyticsController extends Controller
         // Overall stats
         $overall = $this->db->raw("
             SELECT 
-                ROUND(AVG(pass_rate), 1) as avg_pass_rate,
-                ROUND(AVG(total_attempts), 1) as avg_attempts
+                CASE 
+                    WHEN COUNT(*) = 0 THEN 0
+                    ELSE ROUND(AVG(pass_rate), 1)
+                END as avg_pass_rate,
+                CASE 
+                    WHEN COUNT(*) = 0 THEN 0
+                    ELSE ROUND(AVG(total_attempts), 1)
+                END as avg_attempts
             FROM (
                 SELECT 
                     c.id,
                     COUNT(s.id) as total_attempts,
-                    (COUNT(CASE WHEN s.status = 'Passed' THEN 1 END) * 100.0 / NULLIF(COUNT(s.id), 0)) as pass_rate
+                    CASE 
+                        WHEN COUNT(s.id) = 0 THEN 0
+                        ELSE (COUNT(CASE WHEN s.status = 'Passed' THEN 1 END) * 100.0 / COUNT(s.id))
+                    END as pass_rate
                 FROM challenges c
                 LEFT JOIN submissions s ON c.id = s.challenge_id
                 GROUP BY c.id
@@ -263,122 +295,6 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    // GET /api/admin/analytics/lessons
-    public function lessons() 
-    {
-        // $auth = $this->api->require_jwt();
-        // if ($auth['role'] !== 'admin') {
-        //     $this->api->respond_error('Access denied', 403);
-        // }
-
-        $stmt = $this->db->raw("
-            SELECT 
-                l.*,
-                lg.name as language_name,
-                (SELECT COUNT(*) FROM lesson_sections ls WHERE ls.lesson_id = l.id) as section_count
-            FROM lessons l
-            LEFT JOIN languages lg ON l.language_id = lg.id
-            ORDER BY l.created_at DESC
-        ");
-
-        $lessons = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $this->api->respond($lessons);
-    }
-
-    // GET /api/admin/analytics/challenges
-    public function challenges() 
-    {
-        // $auth = $this->api->require_jwt();
-        // if ($auth['role'] !== 'admin') {
-        //     $this->api->respond_error('Access denied', 403);
-        // }
-
-        $stmt = $this->db->raw("
-            SELECT 
-                c.*,
-                cat.name as category_name,
-                u.username as created_by_username,
-                (SELECT COUNT(*) FROM submissions s WHERE s.challenge_id = c.id) as total_attempts,
-                (SELECT COUNT(*) FROM submissions s WHERE s.challenge_id = c.id AND s.status = 'Passed') as passed_attempts,
-                (SELECT COUNT(*) FROM user_challenge_status ucs WHERE ucs.challenge_id = c.id AND ucs.is_solved = 1) as unique_solvers
-            FROM challenges c
-            LEFT JOIN categories cat ON c.category_id = cat.id
-            LEFT JOIN users u ON c.created_by = u.id
-            ORDER BY c.created_at DESC
-        ");
-
-        $challenges = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $this->api->respond($challenges);
-    }
-
-    // GET /api/admin/analytics/languages
-    public function languages() 
-    {
-        // $auth = $this->api->require_jwt();
-        // if ($auth['role'] !== 'admin') {
-        //     $this->api->respond_error('Access denied', 403);
-        // }
-
-        $stmt = $this->db->raw("
-            SELECT 
-                l.*,
-                (SELECT COUNT(*) FROM lessons les WHERE les.language_id = l.id) as lesson_count,
-                (SELECT COUNT(DISTINCT s.user_id) FROM submissions s WHERE s.language = l.name) as active_users,
-                (SELECT COUNT(*) FROM submissions s WHERE s.language = l.name) as total_submissions
-            FROM languages l
-            ORDER BY l.name
-        ");
-
-        $languages = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $this->api->respond($languages);
-    }
-
-    // GET /api/admin/analytics/categories
-    public function categories() 
-    {
-        // $auth = $this->api->require_jwt();
-        // if ($auth['role'] !== 'admin') {
-        //     $this->api->respond_error('Access denied', 403);
-        // }
-
-        $stmt = $this->db->raw("
-            SELECT 
-                c.*,
-                (SELECT COUNT(*) FROM challenges ch WHERE ch.category_id = c.id) as challenge_count,
-                (SELECT COUNT(DISTINCT s.user_id) FROM submissions s 
-                 JOIN challenges ch ON s.challenge_id = ch.id 
-                 WHERE ch.category_id = c.id) as active_users
-            FROM categories c
-            ORDER BY c.name
-        ");
-
-        $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $this->api->respond($categories);
-    }
-
-    // GET /api/admin/analytics/achievements
-    public function achievements() 
-    {
-        // $auth = $this->api->require_jwt();
-        // if ($auth['role'] !== 'admin') {
-        //     $this->api->respond_error('Access denied', 403);
-        // }
-
-        $stmt = $this->db->raw("
-            SELECT 
-                a.*,
-                (SELECT COUNT(*) FROM user_achievements ua WHERE ua.achievement_id = a.id) as users_achieved,
-                (SELECT COUNT(*) FROM users) as total_users,
-                ROUND((SELECT COUNT(*) FROM user_achievements ua WHERE ua.achievement_id = a.id) * 100.0 / 
-                      NULLIF((SELECT COUNT(*) FROM users), 0), 1) as achievement_rate
-            FROM achievements a
-            ORDER BY a.name
-        ");
-
-        $achievements = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $this->api->respond($achievements);
-    }
-
     // GET /api/admin/analytics/top-performers?limit=10
     public function topPerformers() 
     {
@@ -395,14 +311,16 @@ class AnalyticsController extends Controller
                 u.username,
                 u.email,
                 u.joined_at,
-                us.xp,
-                us.challenges_solved,
-                us.total_submissions,
-                ROUND((us.challenges_solved * 100.0 / NULLIF(us.total_submissions, 0)), 1) as success_rate,
+                COALESCE(us.xp, 0) as xp,
+                COALESCE(us.challenges_solved, 0) as challenges_solved,
+                COALESCE(us.total_submissions, 0) as total_submissions,
+                CASE 
+                    WHEN COALESCE(us.total_submissions, 0) = 0 THEN 0
+                    ELSE ROUND((COALESCE(us.challenges_solved, 0) * 100.0 / us.total_submissions), 1)
+                END as success_rate,
                 (SELECT COUNT(*) FROM user_achievements ua WHERE ua.user_id = u.id) as achievements_count
             FROM users u
             LEFT JOIN user_stats us ON u.id = us.user_id
-            WHERE us.challenges_solved > 0
             ORDER BY us.xp DESC, us.challenges_solved DESC
             LIMIT ?
         ", [$limit]);
@@ -478,5 +396,49 @@ class AnalyticsController extends Controller
 
         $activities = array_slice($activities, 0, $limit);
         $this->api->respond($activities);
+    }
+
+    // GET /api/admin/analytics/user-stats
+    public function userStats() 
+    {
+        // $auth = $this->api->require_jwt();
+        // if ($auth['role'] !== 'admin') {
+        //     $this->api->respond_error('Access denied', 403);
+        // }
+
+        // Daily new users
+        $dailyNew = $this->db->raw("
+            SELECT COUNT(*) as count
+            FROM users 
+            WHERE joined_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+        ")->fetch(PDO::FETCH_ASSOC)['count'];
+
+        // Weekly new users
+        $weeklyNew = $this->db->raw("
+            SELECT COUNT(*) as count
+            FROM users 
+            WHERE joined_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ")->fetch(PDO::FETCH_ASSOC)['count'];
+
+        // Total users
+        $totalUsers = $this->db->raw("SELECT COUNT(*) as count FROM users")->fetch(PDO::FETCH_ASSOC)['count'];
+
+        // Monthly growth rate (simplified)
+        $lastMonthUsers = $this->db->raw("
+            SELECT COUNT(*) as count
+            FROM users 
+            WHERE joined_at >= DATE_SUB(NOW(), INTERVAL 60 DAY) 
+            AND joined_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ")->fetch(PDO::FETCH_ASSOC)['count'];
+
+        $monthlyGrowthRate = $lastMonthUsers > 0 ? 
+            round((($weeklyNew - $lastMonthUsers) / $lastMonthUsers) * 100, 1) : 0;
+
+        $this->api->respond([
+            'dailyNewUsers' => (int)$dailyNew,
+            'weeklyNewUsers' => (int)$weeklyNew,
+            'monthlyGrowthRate' => $monthlyGrowthRate,
+            'totalUsers' => (int)$totalUsers
+        ]);
     }
 }
