@@ -1,71 +1,63 @@
 <?php
+
 class SubmissionsController extends Controller
 {
-    private $user_id; // Assume this is populated by middleware/token
-
-    // GET /submissions (List user's own submissions)
-    public function list()
+    // GET /admin/users/{id}/submissions
+    public function getUserSubmissions($user_id)
     {
         $this->api->require_method('GET');
         
-        // Only fetch submissions for the authenticated user
-        $sql = 'SELECT s.id, s.challenge_id, s.language, s.status, s.execution_time, s.submitted_at, c.title as challenge_title
-                FROM submissions as s
-                JOIN challenges as c ON c.id = s.challenge_id
-                WHERE s.user_id = ?
-                ORDER BY s.submitted_at DESC';
+        $page = max(1, intval($_GET['page'] ?? 1));
+        $perPage = min(50, max(10, intval($_GET['perPage'] ?? 10)));
+        $offset = ($page - 1) * $perPage;
         
-        $stmt = $this->db->raw($sql, [$this->user_id]);
+        $sql = "
+            SELECT 
+                s.id as submission_id,
+                c.title as challenge_title,
+                s.language,
+                s.status,
+                s.execution_time as runtime,
+                s.memory_used,
+                s.code_content as code,
+                s.submitted_at,
+                (
+                    SELECT COUNT(*) 
+                    FROM submission_test_results str 
+                    WHERE str.submission_id = s.id AND str.passed = 1
+                ) as passed_tests,
+                (
+                    SELECT COUNT(*) 
+                    FROM submission_test_results str 
+                    WHERE str.submission_id = s.id
+                ) as total_tests
+            FROM 
+                submissions s
+            JOIN 
+                challenges c ON s.challenge_id = c.id
+            WHERE 
+                s.user_id = ?
+            ORDER BY 
+                s.submitted_at DESC
+            LIMIT ? OFFSET ?
+        ";
+        
+        $stmt = $this->db->raw($sql, [$user_id, $perPage, $offset]);
         $submissions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+        
+        // Format test case results for frontend
+        foreach ($submissions as &$submission) {
+            $passed = intval($submission['passed_tests']);
+            $total = intval($submission['total_tests']);
+            $submission['test_case_results'] = [];
+            
+            for ($i = 0; $i < $total; $i++) {
+                $submission['test_case_results'][] = [
+                    'passed' => $i < $passed
+                ];
+            }
+        }
+        
         $this->api->respond($submissions);
-    }
-
-    // GET /submissions/{id} (View a single submission)
-    public function get($submission_id)
-    {
-        $this->api->require_method('GET');
-        
-        $sql = 'SELECT * FROM submissions WHERE id = ? AND user_id = ?';
-        $stmt = $this->db->raw($sql, [$submission_id, $this->user_id]);
-        $submission = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($submission) {
-            $this->api->respond($submission);
-        } else {
-            $this->api->respond_error('Submission not found or access denied', 404);
-        }
-    }
-
-    // POST /submissions (Create a new submission)
-    public function create()
-    {
-        $this->api->require_method('POST');
-        $input = $this->api->body();
-        
-        if (empty($input['challenge_id']) || empty($input['code_content']) || empty($input['language'])) {
-            $this->api->respond_error('Missing required submission data', 400);
-        }
-        
-        // NOTE: In a real system, the status, time, and memory would be set 
-        // by a separate "code runner" service, not directly by the user via the API.
-        
-        $sql = 'INSERT INTO submissions (user_id, challenge_id, code_content, language, status) 
-                VALUES (?, ?, ?, ?, ?)';
-        $stmt = $this->db->raw($sql, [
-            $this->user_id,
-            (int)$input['challenge_id'],
-            $input['code_content'],
-            $input['language'],
-            'Pending' // Initial status before execution
-        ]);
-
-        if ($stmt->rowCount() > 0) {
-            $id = $this->db->lastInsertId();
-            // A real app would trigger a runner service here
-            $this->api->respond(['id' => $id, 'message' => 'Submission received. Awaiting execution.', 'status' => 'Pending'], 202);
-        } else {
-            $this->api->respond_error('Failed to record submission', 500);
-        }
     }
 }

@@ -117,3 +117,20 @@ $router->get('analytics/session-stats', 'AnalyticsController::sessionStats');
 $router->get('analytics/top-performers', 'AnalyticsController::topPerformers');
 $router->get('analytics/recent-activity', 'AnalyticsController::recentActivity');
 $router->get('analytics/user-stats', 'AnalyticsController::userStats');
+
+// User Management Routes
+$router->get('admin/users', 'UsersController::list');
+$router->get('admin/users/stats', 'UsersController::stats');
+$router->get('admin/users/{id}', 'UsersController::get');
+$router->put('admin/users/{id}/role', 'UsersController::updateRole');
+$router->post('admin/users/{id}/moderate', 'UsersController::moderate');
+
+// User Progress Routes
+$router->get('admin/users/{id}/progress', 'UserProgressController::getProgress');
+$router->get('admin/users/{id}/learning-paths', 'UserProgressController::getLearningPaths');
+
+// Submissions Routes
+$router->get('admin/users/{id}/submissions', 'SubmissionsController::getUserSubmissions');
+
+// AI Interactions Routes
+$router->get('admin/users/{id}/ai-interactions', 'AIInteractionsController::getUserInteractions');
