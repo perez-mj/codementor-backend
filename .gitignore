@@ -18,4 +18,3 @@ runtime/*
 *.sublime-workspace
 *.sublime-project
 
-.env
