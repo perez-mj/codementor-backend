@@ -1,5 +1,5 @@
 <?php
-class ChallengesController extends Controller
+class UserChallengeController extends Controller
 {
     private $user_id;
 
@@ -280,5 +280,94 @@ class ChallengesController extends Controller
             $this->api->respond_error('No changes made', 400);
         }
     }
+
+    // POST /challenges/{id}/submit
+    public function submit($challenge_id)
+    {
+        $this->api->require_method('POST');
+        $input = $this->api->body();
+
+        // Validate submission
+        if (empty($input['code']) || empty($input['language'])) {
+            $this->api->respond_error('Code and language are required', 400);
+        }
+
+        // Start transaction
+        $this->db->beginTransaction();
+        
+        try {
+            // Create submission
+            $submission_sql = "
+                INSERT INTO submissions 
+                (user_id, challenge_id, code_content, language, status) 
+                VALUES (?, ?, ?, ?, 'pending')
+            ";
+            $this->db->raw($submission_sql, [
+                $this->user_id, 
+                $challenge_id, 
+                $input['code'], 
+                $input['language']
+            ]);
+            $submission_id = $this->db->lastInsertId();
+
+            // Update user challenge status
+            $status_sql = "
+                INSERT INTO user_challenge_status 
+                (user_id, challenge_id, attempts, last_submitted_at) 
+                VALUES (?, ?, 1, NOW())
+                ON DUPLICATE KEY UPDATE 
+                attempts = attempts + 1, last_submitted_at = NOW()
+            ";
+            $this->db->raw($status_sql, [$this->user_id, $challenge_id]);
+
+            $this->db->commit();
+
+            // Here you would typically queue for code execution
+            $this->api->respond([
+                'submission_id' => $submission_id,
+                'message' => 'Submission received and queued for execution'
+            ]);
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            $this->api->respond_error('Submission failed: ' . $e->getMessage(), 500);
+        }
+    }
+
+    // GET /challenges/{id}/leaderboard
+    public function leaderboard($challenge_id)
+    {
+        $this->api->require_method('GET');
+        
+        $sql = "
+            SELECT 
+                u.username,
+                ucs.best_execution_time,
+                ucs.best_memory_used,
+                ucs.solved_at,
+                s.submitted_at as first_solved_at
+            FROM user_challenge_status ucs
+            JOIN users u ON ucs.user_id = u.id
+            LEFT JOIN submissions s ON (
+                s.user_id = ucs.user_id 
+                AND s.challenge_id = ucs.challenge_id 
+                AND s.status = 'passed'
+                AND s.submitted_at = (
+                    SELECT MIN(submitted_at) 
+                    FROM submissions 
+                    WHERE user_id = ucs.user_id 
+                    AND challenge_id = ucs.challenge_id 
+                    AND status = 'passed'
+                )
+            )
+            WHERE ucs.challenge_id = ? AND ucs.is_solved = 1
+            ORDER BY ucs.best_execution_time ASC, ucs.solved_at ASC
+            LIMIT 100
+        ";
+        
+        $stmt = $this->db->raw($sql, [$challenge_id]);
+        $leaderboard = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $this->api->respond($leaderboard);
+    }
 }
-?>

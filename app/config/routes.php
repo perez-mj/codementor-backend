@@ -43,71 +43,78 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 |
 */
 
+// =============================================================================
+// PUBLIC ROUTES - No authentication required
+// =============================================================================
+
 // Auth endpoints
 $router->post('login', 'ApiController::login');
-$router->post('logout', 'ApiController::logout');
 $router->post('register', 'ApiController::register');
-$router->put('update/{id}', 'ApiController::update');
-$router->delete('delete/{id}', 'ApiController::delete');
-$router->get('list', 'ApiController::list');
-$router->get('profile', 'ApiController::profile');
-$router->post('refresh', 'ApiController::refresh');
 $router->get('verify-email', 'ApiController::verify_email');
 
-// Learn
+// Public content endpoints
 $router->get('languages', 'ApiLanguageController::list');
 $router->get('languages/{slug}', 'ApiLanguageController::get');
 $router->get('languages/{lang_id}/lessons', 'ApiLessonsController::listByLanguage');
 $router->get('languages/{lang_id}/lessons/{topic}', 'ApiLessonsController::getLesson');
-$router->post('lessons', 'ApiLessonsController::save'); // admin only
 
-
-//Migration
-$router->get('create-migration/{migration_class}', 'MigrationController::create_migration');
-$router->get('migrate', 'MigrationController::migrate');
-$router->get('rollback', 'MigrationController::rollback');
-
-// User Stats endpoints
-$router->get('user_stats', 'UserStatsController::get_stats');
-$router->put('user_stats', 'UserStatsController::update_stats');
-
-// Categories endpoints
 $router->get('categories', 'CategoriesController::list');
 $router->get('categories/{id}', 'CategoriesController::get');
-$router->post('categories', 'CategoriesController::create');
-$router->put('categories/{id}', 'CategoriesController::update');
-$router->delete('categories/{id}', 'CategoriesController::delete');
 
-// Challenges endpoints
-$router->get('challenges', 'ChallengesController::list');
-$router->get('challenges/{id|slug}', 'ChallengesController::get');
-$router->post('challenges', 'ChallengesController::create');
-$router->put('challenges/{id}', 'ChallengesController::update');
-$router->delete('challenges/{id}', 'ChallengesController::delete');
+$router->get('challenges', 'UserChallengeController::list');
+$router->get('challenges/{id|slug}', 'UserChallengeController::get');
 
-// Submissions endpoints
-$router->get('submissions', 'SubmissionsController::list');
-$router->get('submissions/{id}', 'SubmissionsController::get');
-
-// Note: In a real system, submission creation would likely be handled by a separate service
-$router->post('submissions', 'SubmissionsController::create');
-
-// Achievements endpoints
 $router->get('achievements', 'AchievementsController::list');
 $router->get('achievements/{id}', 'AchievementsController::get');
 
-// Settings endpoints
+
+// =============================================================================
+// USER ROUTES - Requires user authentication
+// =============================================================================
+
+// User profile & auth
+$router->post('logout', 'ApiController::logout');
+$router->post('refresh', 'ApiController::refresh');
+$router->get('profile', 'ApiController::profile');
+$router->put('update/{id}', 'ApiController::update');
+
+// User content interaction
+$router->post('submissions', 'SubmissionsController::create');
+
+// User data
+$router->get('user_stats', 'UserStatsController::get_stats');
+$router->put('user_stats', 'UserStatsController::update_stats');
 $router->get('settings', 'UserSettingsController::get_all');
 $router->put('settings', 'UserSettingsController::update');
+$router->get('submissions', 'SubmissionsController::list');
+$router->get('submissions/{id}', 'SubmissionsController::get');
 
 
-// Admin Stats endpoints
+// =============================================================================
+// ADMIN ROUTES - Requires admin privileges
+// =============================================================================
+
+// Admin Management Routes
+$router->get('admin/users', 'UsersController::list');
+$router->get('admin/users/stats', 'UsersController::stats');
+$router->get('admin/users/{id}', 'UsersController::get');
+$router->put('admin/users/{id}/role', 'UsersController::updateRole');
+$router->post('admin/users/{id}/moderate', 'UsersController::moderate');
+$router->delete('delete/{id}', 'ApiController::delete');
+$router->get('list', 'ApiController::list');
+
+// Admin User Analytics
+$router->get('admin/users/{id}/progress', 'UserProgressController::getProgress');
+$router->get('admin/users/{id}/learning-paths', 'UserProgressController::getLearningPaths');
+$router->get('admin/users/{id}/submissions', 'SubmissionsController::getUserSubmissions');
+$router->get('admin/users/{id}/ai-interactions', 'AIInteractionsController::getUserInteractions');
+
+// Admin Analytics & Stats
 $router->get('admin/stats', 'AdminStatsController::stats');
 $router->get('admin/user-growth', 'AdminStatsController::userGrowth');
 $router->get('admin/lesson-engagement', 'AdminStatsController::lessonEngagement');
 $router->get('admin/recent-activity', 'AdminStatsController::recentActivity');
 
-// Analytics endpoint
 $router->get('admin/analytics/overview', 'analyticsController::overview');
 $router->get('admin/analytics/user-growth', 'analyticsController::userGrowth');
 $router->get('admin/analytics/submission-activity', 'analyticsController::submissionActivity');
@@ -119,24 +126,7 @@ $router->get('admin/analytics/top-performers', 'analyticsController::topPerforme
 $router->get('admin/analytics/recent-activity', 'analyticsController::recentActivity');
 $router->get('admin/analytics/user-stats', 'analyticsController::userStats');
 
-// User Management Routes
-$router->get('admin/users', 'UsersController::list');
-$router->get('admin/users/stats', 'UsersController::stats');
-$router->get('admin/users/{id}', 'UsersController::get');
-$router->put('admin/users/{id}/role', 'UsersController::updateRole');
-$router->post('admin/users/{id}/moderate', 'UsersController::moderate');
-
-// User Progress Routes
-$router->get('admin/users/{id}/progress', 'UserProgressController::getProgress');
-$router->get('admin/users/{id}/learning-paths', 'UserProgressController::getLearningPaths');
-
-// Submissions Routes
-$router->get('admin/users/{id}/submissions', 'SubmissionsController::getUserSubmissions');
-
-// AI Interactions Routes
-$router->get('admin/users/{id}/ai-interactions', 'AIInteractionsController::getUserInteractions');
-
-// Learn Management Routes
+// Admin Content Management - Learn Module
 $router->get('admin/learn/languages', 'LearnController::getLanguages');
 $router->post('admin/learn/languages', 'LearnController::createLanguage');
 $router->put('admin/learn/languages/{id}', 'LearnController::updateLanguage');
@@ -147,19 +137,45 @@ $router->get('admin/learn/lessons/{id}', 'LearnController::getLesson');
 $router->post('admin/learn/lessons', 'LearnController::createLesson');
 $router->put('admin/learn/lessons/{id}', 'LearnController::updateLesson');
 $router->delete('admin/learn/lessons/{id}', 'LearnController::deleteLesson');
+$router->post('lessons', 'ApiLessonsController::save'); // Duplicate? Consider removing
 
 $router->get('admin/learn/sections', 'LearnController::getSections');
 $router->post('admin/learn/sections', 'LearnController::createSection');
 $router->put('admin/learn/sections/{id}', 'LearnController::updateSection');
 $router->delete('admin/learn/sections/{id}', 'LearnController::deleteSection');
+$router->post('admin/learn/lessons/{id}/reorder-sections', 'LearnController::reorderSections');
 
-// Learning Paths Routes
 $router->get('admin/learn/paths', 'LearnController::getLearningPaths');
 $router->post('admin/learn/paths', 'LearnController::createLearningPath');
 $router->put('admin/learn/paths/{id}', 'LearnController::updateLearningPath');
 $router->delete('admin/learn/paths/{id}', 'LearnController::deleteLearningPath');
 
-// Analytics Routes
 $router->get('admin/learn/analytics/overview', 'LearnController::getAnalyticsOverview');
-$router->post('admin/learn/lessons/{id}/reorder-sections', 'LearnController::reorderSections');
 $router->get('admin/learn/export/{type}', 'LearnController::exportContent');
+
+// Admin Content Management - Challenges Module
+$router->get('admin/challenges', 'AdminChallengeController::getChallenges');
+$router->get('admin/challenges/{id}', 'AdminChallengeController::getChallenge');
+$router->post('admin/challenges', 'AdminChallengeController::createChallenge');
+$router->put('admin/challenges/{id}', 'AdminChallengeController::updateChallenge');
+$router->delete('admin/challenges/{id}', 'AdminChallengeController::deleteChallenge');
+
+$router->get('admin/challenges/{id}/test-cases', 'AdminChallengeController::getChallengeTestCases');
+$router->post('admin/challenges/{id}/test-cases', 'AdminChallengeController::createTestCase');
+
+$router->get('admin/submissions', 'AdminChallengeController::getSubmissions');
+$router->get('admin/analytics/challenges', 'AdminChallengeController::getChallengeAnalytics');
+
+$router->get('admin/categories', 'AdminChallengeController::getCategories');
+$router->post('admin/categories', 'CategoriesController::create');
+$router->put('admin/categories/{id}', 'CategoriesController::update');
+$router->delete('admin/categories/{id}', 'CategoriesController::delete');
+
+
+// =============================================================================
+// DEVELOPMENT ROUTES - For development purposes only
+// =============================================================================
+
+$router->get('create-migration/{migration_class}', 'MigrationController::create_migration');
+$router->get('migrate', 'MigrationController::migrate');
+$router->get('rollback', 'MigrationController::rollback');
