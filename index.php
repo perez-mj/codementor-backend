@@ -66,19 +66,22 @@ define('PREVENT_DIRECT_ACCESS', TRUE);
  * This let you set up your public folder where css, js and other public,
  * files will be visible
  */
-	$public_folder			= __DIR__ ;
+	$public_folder			= 'public';
 
 /*
  * ------------------------------------------------------
  * Define Application Constants
  * ------------------------------------------------------
  */
-
-define('ROOT_DIR', realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR);
+define('ROOT_DIR',  __DIR__ . DIRECTORY_SEPARATOR);
 define('SYSTEM_DIR', ROOT_DIR . $system_path . DIRECTORY_SEPARATOR);
 define('APP_DIR', ROOT_DIR . $application_folder . DIRECTORY_SEPARATOR);
-define('PUBLIC_DIR', __DIR__ . DIRECTORY_SEPARATOR);
+define('PUBLIC_DIR', $public_folder);
 
+/*
+ * ------------------------------------------------------
+ * Setup done? Then Hurray!
+ * ------------------------------------------------------
+ */
 require_once SYSTEM_DIR . 'kernel/LavaLust.php';
-
 ?>
