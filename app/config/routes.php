@@ -43,7 +43,7 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 |
 */
 
-//API endpoints
+// Auth endpoints
 $router->post('login', 'ApiController::login');
 $router->post('logout', 'ApiController::logout');
 $router->post('register', 'ApiController::register');
@@ -61,11 +61,6 @@ $router->get('languages/{lang_id}/lessons', 'ApiLessonsController::listByLanguag
 $router->get('languages/{lang_id}/lessons/{topic}', 'ApiLessonsController::getLesson');
 $router->post('lessons', 'ApiLessonsController::save'); // admin only
 
-// Admin Stats endpoints
-$router->get('admin/stats', 'AdminStatsController::stats');
-$router->get('admin/user-growth', 'AdminStatsController::userGrowth');
-$router->get('admin/lesson-engagement', 'AdminStatsController::lessonEngagement');
-$router->get('admin/recent-activity', 'AdminStatsController::recentActivity');
 
 //Migration
 $router->get('create-migration/{migration_class}', 'MigrationController::create_migration');
@@ -105,17 +100,24 @@ $router->get('achievements/{id}', 'AchievementsController::get');
 $router->get('settings', 'UserSettingsController::get_all');
 $router->put('settings', 'UserSettingsController::update');
 
+
+// Admin Stats endpoints
+$router->get('admin/stats', 'AdminStatsController::stats');
+$router->get('admin/user-growth', 'AdminStatsController::userGrowth');
+$router->get('admin/lesson-engagement', 'AdminStatsController::lessonEngagement');
+$router->get('admin/recent-activity', 'AdminStatsController::recentActivity');
+
 // Analytics endpoint
-$router->get('analytics/overview', 'AnalyticsController::overview');
-$router->get('analytics/user-growth', 'AnalyticsController::userGrowth');
-$router->get('analytics/submission-activity', 'AnalyticsController::submissionActivity');
-$router->get('analytics/learning-paths', 'AnalyticsController::learningPaths');
-$router->get('analytics/challenge-difficulty', 'AnalyticsController::challengeDifficulty');
-$router->get('analytics/lesson-performance', 'AnalyticsController::lessonPerformance');
-$router->get('analytics/session-stats', 'AnalyticsController::sessionStats');
-$router->get('analytics/top-performers', 'AnalyticsController::topPerformers');
-$router->get('analytics/recent-activity', 'AnalyticsController::recentActivity');
-$router->get('analytics/user-stats', 'AnalyticsController::userStats');
+$router->get('admin/analytics/overview', 'analyticsController::overview');
+$router->get('admin/analytics/user-growth', 'analyticsController::userGrowth');
+$router->get('admin/analytics/submission-activity', 'analyticsController::submissionActivity');
+$router->get('admin/analytics/learning-paths', 'analyticsController::learningPaths');
+$router->get('admin/analytics/challenge-difficulty', 'analyticsController::challengeDifficulty');
+$router->get('admin/analytics/lesson-performance', 'analyticsController::lessonPerformance');
+$router->get('admin/analytics/session-stats', 'analyticsController::sessionStats');
+$router->get('admin/analytics/top-performers', 'analyticsController::topPerformers');
+$router->get('admin/analytics/recent-activity', 'analyticsController::recentActivity');
+$router->get('admin/analytics/user-stats', 'analyticsController::userStats');
 
 // User Management Routes
 $router->get('admin/users', 'UsersController::list');
@@ -133,3 +135,31 @@ $router->get('admin/users/{id}/submissions', 'SubmissionsController::getUserSubm
 
 // AI Interactions Routes
 $router->get('admin/users/{id}/ai-interactions', 'AIInteractionsController::getUserInteractions');
+
+// Learn Management Routes
+$router->get('admin/learn/languages', 'LearnController::getLanguages');
+$router->post('admin/learn/languages', 'LearnController::createLanguage');
+$router->put('admin/learn/languages/{id}', 'LearnController::updateLanguage');
+$router->delete('admin/learn/languages/{id}', 'LearnController::deleteLanguage');
+
+$router->get('admin/learn/lessons', 'LearnController::getLessons');
+$router->get('admin/learn/lessons/{id}', 'LearnController::getLesson');
+$router->post('admin/learn/lessons', 'LearnController::createLesson');
+$router->put('admin/learn/lessons/{id}', 'LearnController::updateLesson');
+$router->delete('admin/learn/lessons/{id}', 'LearnController::deleteLesson');
+
+$router->get('admin/learn/sections', 'LearnController::getSections');
+$router->post('admin/learn/sections', 'LearnController::createSection');
+$router->put('admin/learn/sections/{id}', 'LearnController::updateSection');
+$router->delete('admin/learn/sections/{id}', 'LearnController::deleteSection');
+
+// Learning Paths Routes
+$router->get('admin/learn/paths', 'LearnController::getLearningPaths');
+$router->post('admin/learn/paths', 'LearnController::createLearningPath');
+$router->put('admin/learn/paths/{id}', 'LearnController::updateLearningPath');
+$router->delete('admin/learn/paths/{id}', 'LearnController::deleteLearningPath');
+
+// Analytics Routes
+$router->get('admin/learn/analytics/overview', 'LearnController::getAnalyticsOverview');
+$router->post('admin/learn/lessons/{id}/reorder-sections', 'LearnController::reorderSections');
+$router->get('admin/learn/export/{type}', 'LearnController::exportContent');
