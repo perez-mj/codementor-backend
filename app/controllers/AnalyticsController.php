@@ -16,7 +16,7 @@ class AnalyticsController extends Controller
         $activeSessions = $this->db->raw("
             SELECT COUNT(DISTINCT user_id) as val 
             FROM submissions 
-            WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+            WHERE submitted_at >= NOW() - INTERVAL 30 MINUTE
         ")->fetch(PDO::FETCH_ASSOC)['val'];
 
         // Total Submissions
@@ -43,7 +43,7 @@ class AnalyticsController extends Controller
         $recentUsers = $this->db->raw("
             SELECT COUNT(*) as val 
             FROM users 
-            WHERE joined_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            WHERE joined_at >= NOW() - INTERVAL 30 DAY
         ")->fetch(PDO::FETCH_ASSOC)['val'];
         $userGrowth = $totalUsers > 0 ? round(($recentUsers / $totalUsers) * 100, 1) : 0;
 
@@ -69,22 +69,39 @@ class AnalyticsController extends Controller
         $range = $_GET['range'] ?? '30d';
         
         switch($range) {
-            case '7d': $interval = '7 DAY'; $format = '%Y-%m-%d'; break;
-            case '90d': $interval = '90 DAY'; $format = '%Y-%m-%d'; break;
-            case '1y': $interval = '1 YEAR'; $format = '%Y-%m'; break;
-            default: $interval = '30 DAY'; $format = '%Y-%m-%d';
+            case '7d': 
+                $interval = '7 DAY'; 
+                $format = '%Y-%m-%d'; 
+                $intervalValue = '7';
+                break;
+            case '90d': 
+                $interval = '90 DAY'; 
+                $format = '%Y-%m-%d'; 
+                $intervalValue = '90';
+                break;
+            case '1y': 
+                $interval = '1 YEAR'; 
+                $format = '%Y-%m'; 
+                $intervalValue = '365';
+                break;
+            default: 
+                $interval = '30 DAY'; 
+                $format = '%Y-%m-%d';
+                $intervalValue = '30';
         }
 
-        $stmt = $this->db->raw("
+        // Use direct string concatenation for intervals to avoid parameter issues
+        $query = "
             SELECT 
-                DATE_FORMAT(joined_at, ?) AS period,
+                DATE_FORMAT(joined_at, '$format') AS period,
                 COUNT(*) as new_users
             FROM users
-            WHERE joined_at >= DATE_SUB(NOW(), INTERVAL ?)
+            WHERE joined_at >= NOW() - INTERVAL $intervalValue DAY
             GROUP BY period
             ORDER BY period
-        ", [$format, $interval]);
+        ";
 
+        $stmt = $this->db->raw($query);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $this->api->respond($rows);
     }
@@ -100,40 +117,53 @@ class AnalyticsController extends Controller
         $range = $_GET['range'] ?? '30d';
         
         switch($range) {
-            case '7d': $interval = '7 DAY'; $format = '%Y-%m-%d'; break;
-            case '90d': $interval = '90 DAY'; $format = '%Y-%m-%d'; break;
-            case '1y': $interval = '1 YEAR'; $format = '%Y-%m'; break;
-            default: $interval = '30 DAY'; $format = '%Y-%m-%d';
+            case '7d': 
+                $format = '%Y-%m-%d'; 
+                $intervalValue = '7';
+                break;
+            case '90d': 
+                $format = '%Y-%m-%d'; 
+                $intervalValue = '90';
+                break;
+            case '1y': 
+                $format = '%Y-%m'; 
+                $intervalValue = '365';
+                break;
+            default: 
+                $format = '%Y-%m-%d';
+                $intervalValue = '30';
         }
 
-        // Daily submission stats
-        $stmt = $this->db->raw("
+        // Daily submission stats - use direct interval values
+        $dailyQuery = "
             SELECT 
-                DATE_FORMAT(submitted_at, ?) AS period,
+                DATE_FORMAT(submitted_at, '$format') AS period,
                 COUNT(*) as total_submissions,
                 COUNT(CASE WHEN status = 'Passed' THEN 1 END) as passed_submissions,
                 COUNT(CASE WHEN status = 'Failed' THEN 1 END) as failed_submissions
             FROM submissions
-            WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL ?)
+            WHERE submitted_at >= NOW() - INTERVAL $intervalValue DAY
             GROUP BY period
             ORDER BY period
-        ", [$format, $interval]);
+        ";
 
+        $stmt = $this->db->raw($dailyQuery);
         $dailyStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Language distribution
-        $langStmt = $this->db->raw("
+        // Language distribution - use direct interval values
+        $langQuery = "
             SELECT 
                 language,
                 COUNT(*) as count,
-                ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM submissions WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL ?))), 1) as percentage
+                ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM submissions WHERE submitted_at >= NOW() - INTERVAL $intervalValue DAY)), 1) as percentage
             FROM submissions
-            WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL ?)
+            WHERE submitted_at >= NOW() - INTERVAL $intervalValue DAY
             GROUP BY language
             ORDER BY count DESC
             LIMIT 5
-        ", [$interval, $interval]);
+        ";
 
+        $langStmt = $this->db->raw($langQuery);
         $languageUsage = $langStmt->fetchAll(PDO::FETCH_ASSOC);
 
         $this->api->respond([
@@ -272,7 +302,7 @@ class AnalyticsController extends Controller
                 COUNT(DISTINCT user_id) as unique_users,
                 COUNT(*) as total_submissions
             FROM submissions
-            WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            WHERE submitted_at >= NOW() - INTERVAL 30 DAY
             GROUP BY DATE(submitted_at)
             ORDER BY date DESC
             LIMIT 30
@@ -410,14 +440,14 @@ class AnalyticsController extends Controller
         $dailyNew = $this->db->raw("
             SELECT COUNT(*) as count
             FROM users 
-            WHERE joined_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+            WHERE joined_at >= NOW() - INTERVAL 1 DAY
         ")->fetch(PDO::FETCH_ASSOC)['count'];
 
         // Weekly new users
         $weeklyNew = $this->db->raw("
             SELECT COUNT(*) as count
             FROM users 
-            WHERE joined_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            WHERE joined_at >= NOW() - INTERVAL 7 DAY
         ")->fetch(PDO::FETCH_ASSOC)['count'];
 
         // Total users
@@ -427,8 +457,8 @@ class AnalyticsController extends Controller
         $lastMonthUsers = $this->db->raw("
             SELECT COUNT(*) as count
             FROM users 
-            WHERE joined_at >= DATE_SUB(NOW(), INTERVAL 60 DAY) 
-            AND joined_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+            WHERE joined_at >= NOW() - INTERVAL 60 DAY 
+            AND joined_at < NOW() - INTERVAL 30 DAY
         ")->fetch(PDO::FETCH_ASSOC)['count'];
 
         $monthlyGrowthRate = $lastMonthUsers > 0 ? 

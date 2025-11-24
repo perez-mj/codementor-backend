@@ -126,16 +126,16 @@ $router->get('admin/user-growth', 'AdminStatsController::userGrowth');
 $router->get('admin/lesson-engagement', 'AdminStatsController::lessonEngagement');
 $router->get('admin/recent-activity', 'AdminStatsController::recentActivity');
 
-$router->get('admin/analytics/overview', 'analyticsController::overview');
-$router->get('admin/analytics/user-growth', 'analyticsController::userGrowth');
-$router->get('admin/analytics/submission-activity', 'analyticsController::submissionActivity');
-$router->get('admin/analytics/learning-paths', 'analyticsController::learningPaths');
-$router->get('admin/analytics/challenge-difficulty', 'analyticsController::challengeDifficulty');
-$router->get('admin/analytics/lesson-performance', 'analyticsController::lessonPerformance');
-$router->get('admin/analytics/session-stats', 'analyticsController::sessionStats');
-$router->get('admin/analytics/top-performers', 'analyticsController::topPerformers');
-$router->get('admin/analytics/recent-activity', 'analyticsController::recentActivity');
-$router->get('admin/analytics/user-stats', 'analyticsController::userStats');
+$router->get('admin/analytics/overview', 'AnalyticsController::overview');
+$router->get('admin/analytics/user-growth', 'AnalyticsController::userGrowth');
+$router->get('admin/analytics/submission-activity', 'AnalyticsController::submissionActivity');
+$router->get('admin/analytics/learning-paths', 'AnalyticsController::learningPaths');
+$router->get('admin/analytics/challenge-difficulty', 'AnalyticsController::challengeDifficulty');
+$router->get('admin/analytics/lesson-performance', 'AnalyticsController::lessonPerformance');
+$router->get('admin/analytics/session-stats', 'AnalyticsController::sessionStats');
+$router->get('admin/analytics/top-performers', 'AnalyticsController::topPerformers');
+$router->get('admin/analytics/recent-activity', 'AnalyticsController::recentActivity');
+$router->get('admin/analytics/user-stats', 'AnalyticsController::userStats');
 
 // Admin Content Management - Learn Module
 $router->get('admin/learn/languages', 'LearnController::getLanguages');
