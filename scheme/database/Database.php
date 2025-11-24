@@ -162,7 +162,7 @@ class Database {
      *
      * @var integer
      */
-    private $lastIDInserted = 0;
+    public $lastIDInserted = 0;
 
     /**
      * Transaction Count
