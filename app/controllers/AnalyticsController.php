@@ -68,36 +68,33 @@ class AnalyticsController extends Controller
 
         $range = $_GET['range'] ?? '30d';
         
+        // Determine format and interval based on range
         switch($range) {
             case '7d': 
-                $interval = '7 DAY'; 
-                $format = '%Y-%m-%d'; 
-                $intervalValue = '7';
+                $format = '%Y-%m-%d';
+                $intervalValue = 7;
                 break;
             case '90d': 
-                $interval = '90 DAY'; 
-                $format = '%Y-%m-%d'; 
-                $intervalValue = '90';
+                $format = '%Y-%m-%d';
+                $intervalValue = 90;
                 break;
             case '1y': 
-                $interval = '1 YEAR'; 
-                $format = '%Y-%m'; 
-                $intervalValue = '365';
+                $format = '%Y-%m';
+                $intervalValue = 365;
                 break;
             default: 
-                $interval = '30 DAY'; 
                 $format = '%Y-%m-%d';
-                $intervalValue = '30';
+                $intervalValue = 30;
         }
 
-        // Use direct string concatenation for intervals to avoid parameter issues
+        // Use direct string interpolation for both format and interval
         $query = "
             SELECT 
-                DATE_FORMAT(joined_at, '$format') AS period,
+                DATE_FORMAT(joined_at, '{$format}') AS period,
                 COUNT(*) as new_users
             FROM users
-            WHERE joined_at >= NOW() - INTERVAL $intervalValue DAY
-            GROUP BY period
+            WHERE joined_at >= NOW() - INTERVAL {$intervalValue} DAY
+            GROUP BY DATE_FORMAT(joined_at, '{$format}')
             ORDER BY period
         ";
 
@@ -118,46 +115,46 @@ class AnalyticsController extends Controller
         
         switch($range) {
             case '7d': 
-                $format = '%Y-%m-%d'; 
-                $intervalValue = '7';
+                $format = '%Y-%m-%d';
+                $intervalValue = 7;
                 break;
             case '90d': 
-                $format = '%Y-%m-%d'; 
-                $intervalValue = '90';
+                $format = '%Y-%m-%d';
+                $intervalValue = 90;
                 break;
             case '1y': 
-                $format = '%Y-%m'; 
-                $intervalValue = '365';
+                $format = '%Y-%m';
+                $intervalValue = 365;
                 break;
             default: 
                 $format = '%Y-%m-%d';
-                $intervalValue = '30';
+                $intervalValue = 30;
         }
 
-        // Daily submission stats - use direct interval values
+        // Daily submission stats - use direct interpolation
         $dailyQuery = "
             SELECT 
-                DATE_FORMAT(submitted_at, '$format') AS period,
+                DATE_FORMAT(submitted_at, '{$format}') AS period,
                 COUNT(*) as total_submissions,
                 COUNT(CASE WHEN status = 'Passed' THEN 1 END) as passed_submissions,
                 COUNT(CASE WHEN status = 'Failed' THEN 1 END) as failed_submissions
             FROM submissions
-            WHERE submitted_at >= NOW() - INTERVAL $intervalValue DAY
-            GROUP BY period
+            WHERE submitted_at >= NOW() - INTERVAL {$intervalValue} DAY
+            GROUP BY DATE_FORMAT(submitted_at, '{$format}')
             ORDER BY period
         ";
 
         $stmt = $this->db->raw($dailyQuery);
         $dailyStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Language distribution - use direct interval values
+        // Language distribution - use direct interpolation
         $langQuery = "
             SELECT 
                 language,
                 COUNT(*) as count,
-                ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM submissions WHERE submitted_at >= NOW() - INTERVAL $intervalValue DAY)), 1) as percentage
+                ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM submissions WHERE submitted_at >= NOW() - INTERVAL {$intervalValue} DAY)), 1) as percentage
             FROM submissions
-            WHERE submitted_at >= NOW() - INTERVAL $intervalValue DAY
+            WHERE submitted_at >= NOW() - INTERVAL {$intervalValue} DAY
             GROUP BY language
             ORDER BY count DESC
             LIMIT 5
