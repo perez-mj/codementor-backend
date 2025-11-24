@@ -1,5 +1,7 @@
 <?php
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+
 class ApiController extends Controller
 {
     private $user_id;
@@ -107,7 +109,7 @@ class ApiController extends Controller
         try {
             $mailer = new MailerService();
             $subject = "Confirm your CodeMentor account";
-            $verification_link = "http://localhost:5173/verify-email?token={$token}";
+            $verification_link = "https://codementor-c98f.onrender.com/verify-email?token={$token}";
             $html = "
         <h1>Hello {$username}!</h1>
         <p>Thanks for registering. Please verify your email by clicking the link below:</p>
@@ -226,5 +228,166 @@ class ApiController extends Controller
 
         $this->api->respond(['message' => 'Email verified successfully!']);
     }
+
+    // At top:
+
+    // Inside ApiController class:
+
+    private OAuthService $oauth;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->oauth = new OAuthService();
+    }
+
+    // ---------- Google ----------
+    public function googleLogin()
+    {
+        $this->api->require_method('GET');
+        $authUrl = $this->oauth->getGoogleAuthUrl();
+        $this->api->respond(['auth_url' => $authUrl]); // Vue will redirect to this
+    }
+
+    public function googleCallback()
+    {
+        $this->api->require_method('GET');
+        $code = $_GET['code'] ?? '';
+        $state = $_GET['state'] ?? '';
+
+        $profile = $this->oauth->handleGoogleCallback($code, $state);
+        if (!$profile) {
+            $this->api->respond_error('OAuth failed', 400);
+            return;
+        }
+
+        $this->processOAuthUser($profile);
+    }
+
+    // ---------- GitHub ----------
+    public function githubLogin()
+    {
+        $this->api->require_method('GET');
+        $authUrl = $this->oauth->getGithubAuthUrl();
+        $this->api->respond(['auth_url' => $authUrl]);
+    }
+
+    public function githubCallback()
+    {
+        $this->api->require_method('GET');
+        $code = $_GET['code'] ?? '';
+        $state = $_GET['state'] ?? '';
+
+        $profile = $this->oauth->handleGithubCallback($code, $state);
+        if (!$profile) {
+            $this->api->respond_error('OAuth failed', 400);
+            return;
+        }
+
+        $this->processOAuthUser($profile);
+    }
+
+    // ---------- Shared logic ----------
+    private function processOAuthUser(array $profile): void
+    {
+        // Ensure verified email (critical for security)
+        if (!$profile['email'] || !$profile['email_verified']) {
+            $this->api->respond_error('Unverified or missing email', 400);
+            return;
+        }
+
+        // Try to find existing user
+        $stmt = $this->db->raw(
+            "SELECT id, username, email, role, joined_at FROM users WHERE email = ?",
+            [$profile['email']]
+        );
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Auto-create if new (like your register flow \u2014 adjust as needed)
+        if (!$user) {
+            $username = preg_replace('/[^a-z0-9]/i', '_', $profile['name'] ?? 'user') . '_' . substr(md5($profile['id']), 0, 6);
+            try {
+                $this->db->raw(
+                    "INSERT INTO users (username, email, role, joined_at) VALUES (?, ?, 'user', NOW())",
+                    [$username, $profile['email']]
+                );
+                $userId = $this->db->lastIDInserted;
+                $user = [
+                    'id' => $userId,
+                    'username' => $username,
+                    'email' => $profile['email'],
+                    'role' => 'user',
+                    'joined_at' => date('Y-m-d H:i:s'),
+                ];
+            } catch (\Exception $e) {
+                $this->api->respond_error('Account creation failed', 500);
+                return;
+            }
+        }
+
+        // Issue tokens
+        $tokens = $this->api->issue_tokens(['id' => $user['id'], 'role' => $user['role']]);
+
+        // Set tokens in HTTP-only cookies (secure by default)
+        $this->setTokenCookies($tokens);
+
+        // Redirect to frontend with success
+        $redirectUrl = $_ENV['FRONTEND_URL'] . '/auth/callback?success=1';
+        header("Location: $redirectUrl");
+        exit;
+    }
+
+    private function setTokenCookies(array $tokens): void
+    {
+        $options = [
+            'expires' => time() + 3600,
+            'path' => '/',
+            'domain' => '', // set domain for prod (e.g., '.yourdomain.com')
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ];
+        setcookie('access_token', $tokens['access_token'], $options);
+        setcookie('refresh_token', $tokens['refresh_token'], $options);
+    }
+
+    // Inside ApiController class
+
+public function getCurrentUser()
+{
+    $this->api->require_method('GET');
+
+    // \u2705 Your API layer likely has a way to get current user from JWT in cookie/header
+    // Common pattern in your code: $this->user_id is set by auth middleware
+    // If not, here's a robust fallback:
+
+    try {
+        // Attempt to get user from your existing auth system
+        // Adjust based on how your $this->api verifies tokens (e.g., via middleware)
+        
+        // Option A: If your API middleware sets $this->user_id
+        if (empty($this->user_id)) {
+            $this->api->respond_error('Unauthorized', 401);
+            return;
+        }
+
+        $stmt = $this->db->raw(
+            "SELECT id, username, email, role, joined_at FROM users WHERE id = ?",
+            [$this->user_id]
+        );
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            $this->api->respond_error('User not found', 404);
+            return;
+        }
+
+        $this->api->respond(['user' => $user]);
+
+    } catch (\Exception $e) {
+        error_log("GetCurrentUser error: " . $e->getMessage());
+        $this->api->respond_error('Server error', 500);
+    }
+}
 
 }

@@ -52,6 +52,17 @@ $router->post('login', 'ApiController::login');
 $router->post('register', 'ApiController::register');
 $router->get('verify-email', 'ApiController::verify_email');
 
+// \u2705 OAuth: Redirect initiation (called by Vue \u2192 returns auth_url)
+$router->get('auth/google', 'ApiController::googleLogin');
+$router->get('auth/github', 'ApiController::githubLogin');
+
+// \u2705 OAuth: Callback handlers (called by provider \u2192 sets cookies \u2192 redirects to frontend)
+$router->get('auth/google/callback', 'ApiController::googleCallback');
+$router->get('auth/github/callback', 'ApiController::githubCallback');
+
+// \u2705 For frontend to hydrate user after OAuth (uses HTTP-only cookie)
+$router->get('me', 'ApiController::getCurrentUser');  // \u2190 highly recommended
+
 // Public content endpoints
 $router->get('languages', 'ApiLanguageController::list');
 $router->get('languages/{slug}', 'ApiLanguageController::get');
