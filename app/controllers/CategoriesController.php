@@ -40,7 +40,7 @@ class CategoriesController extends Controller
         );
 
         if ($stmt->rowCount() > 0) {
-            $id = $this->db->lastInsertId();
+            $id = $this->db->last_id();
             $this->api->respond(['id' => $id, 'message' => 'Category created successfully'], 201);
         } else {
             $this->api->respond_error('Failed to create category', 500);
