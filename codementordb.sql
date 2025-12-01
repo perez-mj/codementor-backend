@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 23, 2025 at 01:34 PM
+-- Generation Time: Dec 01, 2025 at 06:30 AM
 -- Server version: 8.0.44-0ubuntu0.24.04.1
 -- PHP Version: 8.3.6
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `c`
+-- Database: `codementordb`
 --
 
 -- --------------------------------------------------------
@@ -29,9 +29,9 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `achievements` (
   `id` int NOT NULL,
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `criteria` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci NOT NULL,
+  `criteria` text COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -43,8 +43,8 @@ CREATE TABLE `achievements` (
 CREATE TABLE `ai_interactions` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `user_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `ai_response` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `user_message` text COLLATE utf8mb4_general_ci NOT NULL,
+  `ai_response` text COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -56,10 +56,10 @@ CREATE TABLE `ai_interactions` (
 
 CREATE TABLE `categories` (
   `id` int NOT NULL,
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -81,13 +81,13 @@ INSERT INTO `categories` (`id`, `name`, `description`, `created_at`, `updated_at
 
 CREATE TABLE `challenges` (
   `id` int NOT NULL,
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `difficulty` enum('Easy','Medium','Hard') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `slug` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci NOT NULL,
+  `difficulty` enum('Easy','Medium','Hard') COLLATE utf8mb4_general_ci NOT NULL,
   `xp_reward` int NOT NULL,
-  `time_limit` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '1s',
-  `memory_limit` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '64MB',
+  `time_limit` varchar(10) COLLATE utf8mb4_general_ci DEFAULT '1s',
+  `memory_limit` varchar(20) COLLATE utf8mb4_general_ci DEFAULT '64MB',
   `solved_count` int NOT NULL DEFAULT '0',
   `total_submissions` int NOT NULL DEFAULT '0',
   `accepted_submissions` int NOT NULL DEFAULT '0',
@@ -95,7 +95,7 @@ CREATE TABLE `challenges` (
   `created_by` int NOT NULL,
   `is_published` tinyint(1) DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -103,11 +103,12 @@ CREATE TABLE `challenges` (
 --
 
 INSERT INTO `challenges` (`id`, `title`, `slug`, `description`, `difficulty`, `xp_reward`, `time_limit`, `memory_limit`, `solved_count`, `total_submissions`, `accepted_submissions`, `category_id`, `created_by`, `is_published`, `created_at`, `updated_at`) VALUES
-(1, 'Sum of Two Numbers', 'sum-of-two-numbers', 'Write a function that returns the sum of any two integers.', 'Easy', 10, '1s', '64MB', 0, 0, 0, 1, 1, 1, '2025-11-21 14:36:58', '2025-11-21 14:36:58'),
-(2, 'Implement a Stack', 'implement-a-stack', 'Create a Stack class using a dynamically sized array with push, pop, and peek operations.', 'Medium', 50, '2s', '128MB', 0, 0, 0, 2, 1, 1, '2025-11-21 14:36:58', '2025-11-21 14:36:58'),
-(3, 'Build a RESTful API', 'build-a-restful-api', 'Design and implement a fully functioning REST API for a blog application with CRUD operations.', 'Hard', 150, '5s', '256MB', 0, 0, 0, 3, 1, 1, '2025-11-21 14:36:58', '2025-11-21 14:36:58'),
+(1, 'Sum of Two Numbers', 'sum-of-two-numbers', 'Write a function that returns the sum of any two integers.', 'Easy', 10, '1s', '64MB', 2, 2, 2, 1, 1, 1, '2025-11-21 14:36:58', '2025-12-01 02:08:39'),
+(2, 'Implement a Stack', 'implement-a-stack', 'Create a Stack class using a dynamically sized array with push, pop, and peek operations.', 'Medium', 50, '2s', '128MB', 3, 3, 3, 2, 1, 1, '2025-11-21 14:36:58', '2025-12-01 05:22:58'),
+(3, 'Build a RESTful API', 'build-a-restful-api', 'Design and implement a fully functioning REST API for a blog application with CRUD operations.', 'Hard', 150, '5s', '256MB', 1, 1, 1, 3, 1, 1, '2025-11-21 14:36:58', '2025-12-01 02:33:44'),
 (4, 'Fibonacci Sequence', 'fibonacci-sequence', 'Generate the Nth number in the Fibonacci sequence efficiently using memoization or iterative approach.', 'Medium', 75, '2s', '128MB', 0, 0, 0, 1, 1, 1, '2025-11-21 14:36:58', '2025-11-21 14:36:58'),
-(5, 'Palindrome Checker', 'palindrome-checker', 'Write a function that checks if a given string is a palindrome (reads the same forwards and backwards).', 'Easy', 15, '1s', '64MB', 0, 0, 0, 1, 1, 1, '2025-11-21 14:36:58', '2025-11-21 14:36:58');
+(5, 'Palindrome Checker', 'palindrome-checker', 'Write a function that checks if a given string is a palindrome (reads the same forwards and backwards).', 'Easy', 15, '1s', '64MB', 2, 2, 2, 1, 1, 1, '2025-11-21 14:36:58', '2025-12-01 02:22:53'),
+(7, 'Hello World', 'hello-world', 'hello', 'Easy', 5, '99s', '9MB', 0, 0, 0, 1, 1, 1, '2025-12-01 05:50:15', '2025-12-01 05:50:15');
 
 -- --------------------------------------------------------
 
@@ -118,7 +119,7 @@ INSERT INTO `challenges` (`id`, `title`, `slug`, `description`, `difficulty`, `x
 CREATE TABLE `challenge_hints` (
   `id` int NOT NULL,
   `challenge_id` int NOT NULL,
-  `hint_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `hint_text` text COLLATE utf8mb4_general_ci NOT NULL,
   `order_index` int DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -142,7 +143,7 @@ INSERT INTO `challenge_hints` (`id`, `challenge_id`, `hint_text`, `order_index`,
 CREATE TABLE `challenge_tags` (
   `id` int NOT NULL,
   `challenge_id` int NOT NULL,
-  `tag_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
+  `tag_name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -169,8 +170,8 @@ INSERT INTO `challenge_tags` (`id`, `challenge_id`, `tag_name`) VALUES
 CREATE TABLE `challenge_test_cases` (
   `id` int NOT NULL,
   `challenge_id` int NOT NULL,
-  `input` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `expected_output` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `input` text COLLATE utf8mb4_general_ci NOT NULL,
+  `expected_output` text COLLATE utf8mb4_general_ci NOT NULL,
   `is_example` tinyint(1) DEFAULT '0',
   `is_visible` tinyint(1) DEFAULT '1',
   `order_index` int DEFAULT '0',
@@ -191,7 +192,8 @@ INSERT INTO `challenge_test_cases` (`id`, `challenge_id`, `input`, `expected_out
 (7, 4, '1', '1', 1, 1, 2, '2025-11-21 14:36:58'),
 (8, 4, '5', '5', 1, 1, 3, '2025-11-21 14:36:58'),
 (9, 4, '10', '55', 0, 1, 4, '2025-11-21 14:36:58'),
-(10, 4, '15', '610', 0, 1, 5, '2025-11-21 14:36:58');
+(10, 4, '15', '610', 0, 1, 5, '2025-11-21 14:36:58'),
+(11, 7, 'hello, world', 'Hello, World!', 1, 1, 0, '2025-12-01 05:52:10');
 
 -- --------------------------------------------------------
 
@@ -227,9 +229,9 @@ INSERT INTO `languages` (`id`, `name`, `slug`, `description`) VALUES
 CREATE TABLE `leaderboard_scores` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `score_type` enum('TotalXP','ChallengesSolved') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `score_type` enum('TotalXP','ChallengesSolved') COLLATE utf8mb4_general_ci NOT NULL,
   `score_value` int NOT NULL DEFAULT '0',
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -244,7 +246,7 @@ CREATE TABLE `learning_paths` (
   `description` text,
   `total_lessons` int DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `learning_paths`
@@ -270,7 +272,7 @@ CREATE TABLE `lessons` (
   `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `order_index` int DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NULL DEFAULT NULL
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -310,7 +312,7 @@ CREATE TABLE `lesson_sections` (
   `example_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `order_index` int DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NULL DEFAULT NULL
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -388,8 +390,24 @@ CREATE TABLE `refresh_tokens` (
 --
 
 INSERT INTO `refresh_tokens` (`id`, `user_id`, `token`, `expires_at`) VALUES
-(2, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xTPSq8mNpw8pMDR3mcKY5CXqasjceZ3P/xeMEzNUup4ohryzhTR7rrNqN3InYKul16s8YtOF+N+kV2YJIHLXgtp3j16INkym2GTIryMsmVOUiCc483pJ16ObWu0PHrofwo=', '2025-11-27 12:05:05'),
-(3, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xSgfuX4qzwO1333enqrQVvEa/CfC+5rkqkVILzUtgeAkFGqbBcKnx8XzBMQ/eUn8jJb/rpdLDmdUaGWqQ/u44iT++he2Ae8DrmZdw6/2rJBI60gzOfU13+p2asf1tST6nc=', '2025-11-29 11:47:31');
+(6, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5DaUYiocrK/onH3y4Ub5U9uzVDAVX9Xk0I9ouTywXxswMG8wvN6lmRgguBG3/n0bS5trSmCJvVo998DKlf+fPYtglCUoyFhBgnALsargwVq6OsuX0ygYsxZVYMiBIzUkxn8=', '2025-12-07 23:13:33'),
+(10, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5DbUnFloTkqAKMyoszc8LeZjjdpvSrc2J1k9bhlw6El09rHHhBqbNR5misYS9hdQGOoWRwxmiDfQkmcaHgf+wrDJXfIuQsu2ssS54B7dU96hEaLu3CoXcVTV2GzKpCKdMIY=', '2025-12-07 23:33:29'),
+(11, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5DY1rU3YNjlzg4cIHNPqNcQKZLkxaBO3Eeoo9QnJKdz9c9ZHRaG8rEXuRMFbCTJvna6fZ6ktQCK7neHn8EMPkMRce2QKGW4lphjx70PFXu7XshNElDDPn2u7hg4LgdBDsbo=', '2025-12-07 23:36:41'),
+(12, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5DYezxqXN6UTPqgW6H/n+2ok6pcyYTY9gTP+uT42MyMFhln3TBWHPO8Kb9HPHcqORs/wekYyG5kX/Tev9F4yaD4n7iZouf4hnT7j5Ze0oL2B/kFFuA3zPpzGdJQIZ62JEHA=', '2025-12-07 23:40:06'),
+(13, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5DYyLuVM2u2TDpcBSSScsPfyKqy3FEbPCWaFMpSSFdPtGKGu9wN+rH1afnCThPgStGBIo0FEEm5kiq/AUHe9U7L320IRo9gH2wxJemNwjYaq0QU8dwpYOabi0uGSirLFiCc=', '2025-12-08 00:01:35'),
+(14, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5DaLpm+kbO5AuJto2xmaglXXRzWXNknfdZNaeWooCKo7SJv+7FpArGC4ulq4sbUpvM/o+z3sMju8QPff5Z8h+0XNrPF0gI0NaNeNwOrIYce7xQHTDPnDFkZsBpqzV8RLH7U=', '2025-12-08 00:12:56'),
+(15, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5Db3GX1MIzzu7NzdH7YOE56LfhvTvR9INkbvtv3RB80+VTcom8m49fD0HodNN3XTK/+AmNTfD6mNA9/uEYcR8AqcJ9pJ3LX4pxyMPQRyHbucwTIujPdAzOWF00NACMtjsl4=', '2025-12-08 00:13:40'),
+(17, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xTh61CbhHLDBIQWV7AbVJFbNKd/Zkt3AS5TgnjROXXBrwNtZRK1FayrBnUqGWa+Y+N8e0IcSyUY+XyB8xK0L7+pPMGl3tZCvIktGFNkC2M5MZD4TfFiz7WVP7aoBY9dm5A=', '2025-12-08 00:38:49'),
+(18, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xSuXUdWffNUFcL0mfhBU695888TvqztBRNr9BrYMOdvf9/nIfbMUaEq6PetlZfI2S1jYl56ELYQPKD5Tz6Dv0eveZ9ukZBV0bCaahWG8JYX+G/gpDGSdDIpk68pqTL0ems=', '2025-12-08 00:39:02'),
+(19, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5DYq+b1s6wh9AD+yl+Ddt7Tsmg4oWqtIekjZVeSrFZ9EWStz9BpY4FdAQkZ+vkFASYoZiuXtUm87CaRsCiPqudwOuj/zBtXglZqlbTcPqeW9r6jVBAfH6pH1CWW6Q0nC4Gc=', '2025-12-08 01:00:59'),
+(20, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5DZPKEcUvIpmc6hR7EXOVlGbbszmCBH749KnXMCwogvhCttKvfoxzaznRRZEKMmBl+gXBtk17/OpkCov9uih8cmkozB2Tl5uneLcXb5Q601HPRCKCwQ0SUVcPIrCPA6EhJ0=', '2025-12-08 01:14:39'),
+(21, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5DabT+TBnYKB91Bcz+dOYt+4Grub/CbbaUIB7JWNJtQkYpWxDIKpHtzwTkQ0LCVa1hQi4A3AtnWlq3yyrvWd9MbV8MciDPOTmR6oiBSyx+psiHFmj2CaMwIG9Y6ewsXRIkE=', '2025-12-08 01:55:14'),
+(23, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xSbB1YJZt0iURJeQSBsSAu7+Lhu4CsagkC9EscKTyJKlx/3UTjcOEq5hrdHCWKSlZMzrXbHoqXmKZ64Fp4QJ8UbiyHTn6XuND37qFPaGo4iASk9k1kzigQkKYXH6fM9bwo=', '2025-12-08 02:11:57'),
+(32, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xRqW0Kr07354Ai7xvrVhzx88FNk+djw1kl9/UGps095LpX5s6yLU0qIZIA6zG5+KJbwArZvj3/Qr29EVA/pFzWpqZMMMUN5cAN0eHo+IQAniZlGg0r7R18BHo3vdSBRfNc=', '2025-12-08 02:35:34'),
+(34, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xSpR7wPlAy0BJC/V754A1c7qe8KV794rX5w+b7EIo1zUc2s+oD5oR1veZMvhNmsf12iEnnRdL7FlGdzjdohY6Wd87zHaGFWoMcSbTVWoGoIFKQf8366xPXpl+Kn905L/HU=', '2025-12-08 05:23:36'),
+(35, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xRCByksHA9DL3S2pHXyfCooZhl5q35u08mqSjMYzkiKtPkTlsA4z6o/09jKmAt5Fan8dC2hiO7HltaABW0Gx5yyaXDGoHTZIqBmNGwRPL2e+9Kyw+WsdI6Mw6E8dNpnUXg=', '2025-12-08 05:24:29'),
+(36, 1, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV27NkP54wkYh0sxOEGgvv3NoJcX5PWOCH6M0LoE5M+4xQJ7hnxY1Gwteai+YAOspnfvFdQk26rzzwMwx7pev0G3K9pbxbZW/l2mnyf15HCXa2tWE8g62k3kHhY497WlIJdrXT6wViEWCyfIVhbbSCDh6myDRU+MlXC9pn2lwSaiVA=', '2025-12-08 05:44:42'),
+(38, 12, 'W+usnXtFovOyE3P6iO9SeYabFNKT9p7YLdyDI5uhnMjPF8W0ggghnmYqYL1j6VV2tJ1iW6DpqAOY4Wn4h1TALMzrqkvv20CFXqEMJFWK5DYajCRa6I6GthTSakm0GFX/1DOTGXeJ52NpXF2cBobRGX5eIt3rXTqZqpTrhXBNZi8jvKsJNBmVzjGnX+ansvmRAYuqNisjemAzDbAgcW4xeRCYI8kP4j57RG/z/O3Tl58=', '2025-12-08 05:52:40');
 
 -- --------------------------------------------------------
 
@@ -403,10 +421,43 @@ CREATE TABLE `submissions` (
   `challenge_id` int NOT NULL,
   `code_content` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `language` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `status` enum('Passed','Failed') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `status` enum('pending','running','passed','failed','error') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pending',
   `execution_time` float DEFAULT NULL,
   `memory_used` int DEFAULT NULL,
-  `submitted_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `submitted_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `evaluated_at` timestamp NULL DEFAULT NULL,
+  `test_results` json DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `submissions`
+--
+
+INSERT INTO `submissions` (`id`, `user_id`, `challenge_id`, `code_content`, `language`, `status`, `execution_time`, `memory_used`, `submitted_at`, `evaluated_at`, `test_results`) VALUES
+(3, 12, 1, 'echo \"hello\";', 'php', 'pending', NULL, NULL, '2025-12-01 02:05:46', NULL, NULL),
+(4, 12, 1, 'echo \"hello\";', 'php', 'pending', NULL, NULL, '2025-12-01 02:08:39', NULL, NULL),
+(5, 12, 2, '<?php\necho \"Sana gumana\";\n?>', 'php', 'pending', NULL, NULL, '2025-12-01 02:18:02', NULL, NULL),
+(6, 12, 5, 'echo \"Gumana ka plz\";', 'php', 'pending', NULL, NULL, '2025-12-01 02:20:30', NULL, NULL),
+(7, 12, 5, 'echo \"Y\"', 'php', 'pending', NULL, NULL, '2025-12-01 02:22:53', NULL, NULL),
+(8, 12, 3, 'echo \"hey there\";', 'php', 'pending', NULL, NULL, '2025-12-01 02:33:44', NULL, NULL),
+(9, 12, 2, '// write your csharp solution here', 'csharp', 'pending', NULL, NULL, '2025-12-01 02:35:18', NULL, NULL),
+(10, 12, 2, '<?php echo \"PHP is fun!\"; ?>', 'php', 'pending', NULL, NULL, '2025-12-01 05:22:57', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `submission_test_results`
+--
+
+CREATE TABLE `submission_test_results` (
+  `id` int NOT NULL,
+  `submission_id` int NOT NULL,
+  `input` text COLLATE utf8mb4_general_ci,
+  `expected_output` text COLLATE utf8mb4_general_ci,
+  `actual_output` text COLLATE utf8mb4_general_ci,
+  `passed` tinyint(1) DEFAULT '0',
+  `execution_time` decimal(10,4) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -418,16 +469,17 @@ CREATE TABLE `submissions` (
 CREATE TABLE `users` (
   `id` int NOT NULL,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `full_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `full_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `password_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `role` enum('user','moderator','admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `account_status` enum('active','suspended','banned','pending') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'pending',
+  `account_status` enum('active','suspended','banned','pending') COLLATE utf8mb4_general_ci DEFAULT 'pending',
   `joined_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `last_login_at` timestamp NULL DEFAULT NULL,
   `rank` int DEFAULT '0',
   `total_points` int DEFAULT '0',
+  `xp` int DEFAULT '0',
   `email_verified` tinyint(1) DEFAULT '0',
   `verification_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `token_expires_at` datetime DEFAULT NULL
@@ -437,8 +489,9 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `full_name`, `email`, `password_hash`, `role`, `account_status`, `joined_at`, `updated_at`, `last_login_at`, `rank`, `total_points`, `email_verified`, `verification_token`, `token_expires_at`) VALUES
-(1, 'sadistcoder', NULL, 'sadistcoder@cm.com', '$2y$10$18V/3LL9ONBatTqjD/XqV.Tyrm5cw5gYzXI/k4GWwLfqr4Mpu1fG6', 'admin', 'pending', '2025-10-21 10:50:33', '2025-11-22 12:08:56', NULL, 1, 0, 0, NULL, NULL);
+INSERT INTO `users` (`id`, `username`, `full_name`, `email`, `password_hash`, `role`, `account_status`, `joined_at`, `updated_at`, `last_login_at`, `rank`, `total_points`, `xp`, `email_verified`, `verification_token`, `token_expires_at`) VALUES
+(1, 'sadistcoder', NULL, 'sadistcoder@cm.com', '$2y$10$18V/3LL9ONBatTqjD/XqV.Tyrm5cw5gYzXI/k4GWwLfqr4Mpu1fG6', 'admin', 'pending', '2025-10-21 10:50:33', '2025-11-22 12:08:56', NULL, 1, 0, 0, 0, NULL, NULL),
+(12, 'markp', NULL, 'perezmj012@gmail.com', '$2y$10$Tynq4WiyLU2kQhGJMOD2gugL4QORK5M1PzWhdGX2pqYDZa1lCQykO', 'user', 'pending', '2025-11-30 23:12:28', '2025-12-01 02:33:44', NULL, 0, 0, 225, 0, 'ba133aa01f79a6ff9d3e9acab32c7fa6d892f9bb4d2f9805e8a0e6600b6e91e9', '2025-12-01 23:12:28');
 
 -- --------------------------------------------------------
 
@@ -468,8 +521,18 @@ CREATE TABLE `user_challenge_status` (
   `best_execution_time` float DEFAULT NULL,
   `best_memory_used` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_challenge_status`
+--
+
+INSERT INTO `user_challenge_status` (`user_id`, `challenge_id`, `is_solved`, `attempts`, `solved_at`, `last_submitted_at`, `best_execution_time`, `best_memory_used`, `created_at`, `updated_at`) VALUES
+(12, 1, 1, 2, '2025-12-01 02:05:46', '2025-12-01 02:08:39', 0, 0, '2025-12-01 02:05:46', '2025-12-01 02:08:39'),
+(12, 2, 1, 3, '2025-12-01 02:18:02', '2025-12-01 05:22:57', 0, 0, '2025-12-01 02:18:02', '2025-12-01 05:22:57'),
+(12, 3, 1, 1, '2025-12-01 02:33:44', '2025-12-01 02:33:44', 0, 0, '2025-12-01 02:33:44', '2025-12-01 02:33:44'),
+(12, 5, 1, 2, '2025-12-01 02:20:30', '2025-12-01 02:22:53', 0, 0, '2025-12-01 02:20:30', '2025-12-01 02:22:53');
 
 -- --------------------------------------------------------
 
@@ -484,8 +547,8 @@ CREATE TABLE `user_learning_paths` (
   `completed_lessons` int DEFAULT '0',
   `current_lesson_id` int DEFAULT NULL,
   `enrolled_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -500,7 +563,7 @@ CREATE TABLE `user_progress` (
   `percent_completion` decimal(5,2) DEFAULT '0.00',
   `time_spent` int DEFAULT '0' COMMENT 'in seconds',
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -510,8 +573,8 @@ CREATE TABLE `user_progress` (
 
 CREATE TABLE `user_settings` (
   `user_id` int NOT NULL,
-  `setting_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `setting_value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
+  `setting_key` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `setting_value` text COLLATE utf8mb4_general_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -523,11 +586,20 @@ CREATE TABLE `user_settings` (
 CREATE TABLE `user_stats` (
   `user_id` int NOT NULL,
   `xp` int DEFAULT '0',
+  `total_xp_earned` int DEFAULT '0',
   `current_streak` int DEFAULT '0',
   `longest_streak` int DEFAULT '0',
   `total_submissions` int DEFAULT '0',
-  `challenges_solved` int DEFAULT '0'
+  `challenges_solved` int DEFAULT '0',
+  `total_challenges_attempted` int DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_stats`
+--
+
+INSERT INTO `user_stats` (`user_id`, `xp`, `total_xp_earned`, `current_streak`, `longest_streak`, `total_submissions`, `challenges_solved`, `total_challenges_attempted`) VALUES
+(12, 225, 225, 0, 0, 0, 8, 0);
 
 --
 -- Indexes for dumped tables
@@ -647,6 +719,13 @@ ALTER TABLE `submissions`
   ADD KEY `challenge_id` (`challenge_id`);
 
 --
+-- Indexes for table `submission_test_results`
+--
+ALTER TABLE `submission_test_results`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `submission_id` (`submission_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -723,7 +802,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `challenges`
 --
 ALTER TABLE `challenges`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `challenge_hints`
@@ -741,7 +820,7 @@ ALTER TABLE `challenge_tags`
 -- AUTO_INCREMENT for table `challenge_test_cases`
 --
 ALTER TABLE `challenge_test_cases`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `languages`
@@ -783,19 +862,25 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `submissions`
 --
 ALTER TABLE `submissions`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `submission_test_results`
+--
+ALTER TABLE `submission_test_results`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Constraints for dumped tables
@@ -862,6 +947,12 @@ ALTER TABLE `refresh_tokens`
 ALTER TABLE `submissions`
   ADD CONSTRAINT `submissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `submissions_ibfk_2` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`);
+
+--
+-- Constraints for table `submission_test_results`
+--
+ALTER TABLE `submission_test_results`
+  ADD CONSTRAINT `submission_test_results_ibfk_1` FOREIGN KEY (`submission_id`) REFERENCES `submissions` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `user_achievements`
