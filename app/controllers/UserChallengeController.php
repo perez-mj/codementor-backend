@@ -226,7 +226,7 @@ class UserChallengeController extends Controller
         ]);
 
         if ($stmt->rowCount() > 0) {
-            // Use last_id() instead of lastInsertId()
+            // Use last_id() instead of last_id()
             $id = $this->db->last_id();
             $this->api->respond(['id' => $id, 'slug' => $slug], 201);
         }
@@ -345,7 +345,7 @@ class UserChallengeController extends Controller
                 $input['language']
             ]);
             
-            // Use last_id() instead of lastInsertId()
+            // Use last_id() instead of last_id()
             $submission_id = $this->db->last_id();
 
             // Update user challenge status (increment attempts)

@@ -129,7 +129,7 @@ class AdminChallengeController extends Controller
         }
         
         // Start transaction
-        $this->db->beginTransaction();
+        $this->db->transaction();
         
         try {
             // Insert challenge
@@ -152,7 +152,7 @@ class AdminChallengeController extends Controller
                 $data['is_published'] ?? 1
             ]);
             
-            $challengeId = $this->db->lastInsertId();
+            $challengeId = $this->db->last_id();
             
             // Insert test cases if provided
             if (!empty($data['test_cases']) && is_array($data['test_cases'])) {
@@ -213,7 +213,7 @@ class AdminChallengeController extends Controller
             ], 201);
             
         } catch (Exception $e) {
-            $this->db->rollBack();
+            $this->db->roll_back();
             $this->api->respond_error('Failed to create challenge: ' . $e->getMessage(), 500);
         }
     }
@@ -297,7 +297,7 @@ class AdminChallengeController extends Controller
         }
         
         // Start transaction
-        $this->db->beginTransaction();
+        $this->db->transaction();
         
         try {
             // Delete related records first
@@ -324,7 +324,7 @@ class AdminChallengeController extends Controller
             ]);
             
         } catch (Exception $e) {
-            $this->db->rollBack();
+            $this->db->roll_back();
             $this->api->respond_error('Failed to delete challenge: ' . $e->getMessage(), 500);
         }
     }
@@ -384,7 +384,7 @@ class AdminChallengeController extends Controller
             $data['order_index'] ?? 0
         ]);
         
-        $testCaseId = $this->db->lastInsertId();
+        $testCaseId = $this->db->last_id();
         
         $this->api->respond([
             'success' => true,
