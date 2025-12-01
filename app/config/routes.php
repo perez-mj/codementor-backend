@@ -48,9 +48,9 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 // =============================================================================
 
 // Auth endpoints
-$router->post('login', 'ApiController::login');
-$router->post('register', 'ApiController::register');
-$router->get('verify-email', 'ApiController::verify_email');
+$router->post('auth/login', 'ApiController::login');
+$router->post('auth/register', 'ApiController::register');
+$router->get('auth/verify-email', 'ApiController::verify_email');
 
 // \u2705 OAuth: Redirect initiation (called by Vue \u2192 returns auth_url)
 $router->get('auth/google', 'ApiController::googleLogin');
@@ -84,14 +84,17 @@ $router->get('achievements/{id}', 'AchievementsController::get');
 // =============================================================================
 
 // User profile & auth
-$router->post('logout', 'ApiController::logout');
-$router->post('refresh', 'ApiController::refresh');
-$router->get('profile', 'ApiController::profile');
-$router->put('update/{id}', 'ApiController::update');
+$router->post('auth/logout', 'ApiController::logout');
+$router->post('auth/refresh', 'ApiController::refresh');
+$router->get('auth/profile', 'ApiController::profile');
+$router->put('auth/update/{id}', 'ApiController::update');
+// user schallenge submission
+$router->post('challenges/{id}/submit', 'UserChallengeController::submit');
+// In your routes file, change from:
+$router->get('/submissions/{id}', 'SubmissionsController::get');
 
-// User content interaction
-$router->post('submissions', 'SubmissionsController::create');
-
+// To:
+$router->get('/submissions/{id}', 'UserChallengeController::getSubmission');
 // User data
 $router->get('user_stats', 'UserStatsController::get_stats');
 $router->put('user_stats', 'UserStatsController::update_stats');
@@ -190,3 +193,5 @@ $router->delete('admin/categories/{id}', 'CategoriesController::delete');
 $router->get('create-migration/{migration_class}', 'MigrationController::create_migration');
 $router->get('migrate', 'MigrationController::migrate');
 $router->get('rollback', 'MigrationController::rollback');
+
+$router->post('execute', 'ExecController::execute');

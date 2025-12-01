@@ -1,63 +1,119 @@
 <?php
-
 class SubmissionsController extends Controller
 {
-    // GET /admin/users/{id}/submissions
-    public function getUserSubmissions($user_id)
+    private $user_id;
+
+    // ===========================
+    // GET /submissions/{id}
+    // ===========================
+    public function get($submission_id)
     {
         $this->api->require_method('GET');
         
-        $page = max(1, intval($_GET['page'] ?? 1));
-        $perPage = min(50, max(10, intval($_GET['perPage'] ?? 10)));
-        $offset = ($page - 1) * $perPage;
-        
+        // Require JWT authentication
+        $auth = $this->api->require_jwt();
+        $this->user_id = $auth['sub'];
+
         $sql = "
             SELECT 
-                s.id as submission_id,
+                s.*,
                 c.title as challenge_title,
-                s.language,
-                s.status,
-                s.execution_time as runtime,
-                s.memory_used,
-                s.code_content as code,
-                s.submitted_at,
-                (
-                    SELECT COUNT(*) 
-                    FROM submission_test_results str 
-                    WHERE str.submission_id = s.id AND str.passed = 1
-                ) as passed_tests,
-                (
-                    SELECT COUNT(*) 
-                    FROM submission_test_results str 
-                    WHERE str.submission_id = s.id
-                ) as total_tests
-            FROM 
-                submissions s
-            JOIN 
-                challenges c ON s.challenge_id = c.id
-            WHERE 
-                s.user_id = ?
-            ORDER BY 
-                s.submitted_at DESC
-            LIMIT ? OFFSET ?
+                c.slug as challenge_slug
+            FROM submissions s
+            JOIN challenges c ON s.challenge_id = c.id
+            WHERE s.id = ? AND s.user_id = ?
         ";
         
-        $stmt = $this->db->raw($sql, [$user_id, $perPage, $offset]);
-        $submissions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Format test case results for frontend
-        foreach ($submissions as &$submission) {
-            $passed = intval($submission['passed_tests']);
-            $total = intval($submission['total_tests']);
-            $submission['test_case_results'] = [];
-            
-            for ($i = 0; $i < $total; $i++) {
-                $submission['test_case_results'][] = [
-                    'passed' => $i < $passed
-                ];
-            }
+        $stmt = $this->db->raw($sql, [$submission_id, $this->user_id]);
+        $submission = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$submission) {
+            $this->api->respond_error('Submission not found', 404);
         }
+
+        // Get test results if available
+        $test_results_sql = "
+            SELECT input, expected_output, actual_output, passed, execution_time
+            FROM submission_test_results 
+            WHERE submission_id = ?
+            ORDER BY id
+        ";
+        $test_results_stmt = $this->db->raw($test_results_sql, [$submission_id]);
+        $test_results = $test_results_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $response = [
+            'id' => (int)$submission['id'],
+            'challenge_id' => (int)$submission['challenge_id'],
+            'challenge_title' => $submission['challenge_title'],
+            'challenge_slug' => $submission['challenge_slug'],
+            'code_content' => $submission['code_content'],
+            'language' => $submission['language'],
+            'status' => $submission['status'],
+            'execution_time' => $submission['execution_time'],
+            'memory_used' => $submission['memory_used'],
+            'submitted_at' => $submission['submitted_at'],
+            'evaluated_at' => $submission['evaluated_at'],
+            'test_results' => $test_results
+        ];
+
+        $this->api->respond($response);
+    }
+
+    // ===========================
+    // GET /submissions (list user's submissions)
+    // ===========================
+    public function list()
+    {
+        $this->api->require_method('GET');
         
+        // Require JWT authentication
+        $auth = $this->api->require_jwt();
+        $this->user_id = $auth['sub'];
+
+        $sql = "
+            SELECT 
+                s.*,
+                c.title as challenge_title,
+                c.slug as challenge_slug
+            FROM submissions s
+            JOIN challenges c ON s.challenge_id = c.id
+            WHERE s.user_id = ?
+            ORDER BY s.submitted_at DESC
+            LIMIT 50
+        ";
+        
+        $stmt = $this->db->raw($sql, [$this->user_id]);
+        $submissions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $this->api->respond($submissions);
+    }
+
+    // ===========================
+    // GET /challenges/{id}/submissions (list submissions for a specific challenge)
+    // ===========================
+    public function challengeSubmissions($challenge_id)
+    {
+        $this->api->require_method('GET');
+        
+        // Require JWT authentication
+        $auth = $this->api->require_jwt();
+        $this->user_id = $auth['sub'];
+
+        $sql = "
+            SELECT 
+                s.*,
+                c.title as challenge_title,
+                c.slug as challenge_slug
+            FROM submissions s
+            JOIN challenges c ON s.challenge_id = c.id
+            WHERE s.user_id = ? AND s.challenge_id = ?
+            ORDER BY s.submitted_at DESC
+            LIMIT 20
+        ";
+        
+        $stmt = $this->db->raw($sql, [$this->user_id, $challenge_id]);
+        $submissions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         $this->api->respond($submissions);
     }
 }

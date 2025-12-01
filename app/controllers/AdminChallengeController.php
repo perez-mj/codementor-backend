@@ -398,7 +398,7 @@ class AdminChallengeController extends Controller
     {
         $this->api->require_method('GET');
         
-        $filters = $this->api->query();
+        $filters = $this->api->get_query_params();
         
         $sql = "
             SELECT 

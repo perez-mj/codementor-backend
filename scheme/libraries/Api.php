@@ -172,6 +172,10 @@ class Api
     {
         return $_GET;
     }
+    public function query()
+{
+    return $this->get_query_params();
+}
 
     /**
      * require_method

@@ -59,11 +59,11 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 
 $database['main'] = array(
     'driver'	=> 'mysql',
-    'hostname'	=> 'sql12.freesqldatabase.com',
+    'hostname'	=> 'localhost',
     'port'		=> '3306',
-    'username'	=> 'sql12809027',
-    'password'	=> 'IIHRV1Z5ml',
-    'database'	=> 'sql12809027',
+    'username'	=> 'root',
+    'password'	=> '',
+    'database'	=> 'codementordb',
     'charset'	=> 'utf8',
     'dbprefix'	=> '',
     // Optional for SQLite

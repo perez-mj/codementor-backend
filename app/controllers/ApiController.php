@@ -26,7 +26,7 @@ class ApiController extends Controller
                 'joined_at' => $user['joined_at']
             ];
 
-            $this->api->respond(['tokens' => $tokens, 'user' => $userData]); //output: {"tokens":{"access_token": "...", "refresh_token": "..."},"user":{...}}
+            $this->api->respond(["refresh_token" => $tokens['refresh_token'], 'access_token' => $tokens['access_token'], 'user' => $userData]); //output: {"tokens":{"access_token": "...", "refresh_token": "..."},"user":{...}}
         } else {
             $this->api->respond_error('Invalid credentials', 401); // output: {"error":"Invalid credentials"}
         }
@@ -109,7 +109,7 @@ class ApiController extends Controller
         try {
             $mailer = new MailerService();
             $subject = "Confirm your CodeMentor account";
-            $verification_link = "https://codementor-c98f.onrender.com/verify-email?token={$token}";
+            $verification_link = "http://localhost:5173/verify-email?token={$token}";
             $html = "
         <h1>Hello {$username}!</h1>
         <p>Thanks for registering. Please verify your email by clicking the link below:</p>
